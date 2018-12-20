@@ -1,0 +1,40 @@
+service_name: goim-logic
+runmode: "dev"
+maxproc: 32
+serverTick: "5s"
+onlineTick: "10s"
+logpath: ""
+env:
+  region: "bj"
+  zone: "bj01"  
+  weight: 10
+discovery:
+  addr: 109.254.2.159:8500
+rpcserver:
+  addr: :8011
+httpserver:
+  addr: :8012
+metrics_server:
+  addr: :8015
+zipkin:
+  url: http://109.254.2.159:9411
+  service_name: goim-logic
+  reporter:
+    timeout: 5
+    batch_size: 1000
+    batch_interval: 3
+    max_backlog: 3000
+kafka:
+  topic: goim-topic
+  brokers:
+    - 109.254.2.159:9092
+redis:
+  addrs:
+    - 109.254.2.159:6380
+    - 109.254.2.159:6381
+    - 109.254.2.159:6382
+    - 109.254.2.159:6383
+    - 109.254.2.159:6384
+    - 109.254.2.159:6385
+  poolsize: 10
+  expire: "30m"

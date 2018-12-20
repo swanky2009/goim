@@ -1,0 +1,70 @@
+service_name: goim-comet
+runmode: "dev"
+maxproc: 32
+serverTick: "5s"
+onlineTick: "10s"
+logpath: ""
+env:
+  region: "bj"
+  zone: "bj01"  
+  weight: 10
+rpc_server:
+  addr: :8009
+  timeout: "1s"
+rpc_lient:
+  dail: "1s"
+  timeout: "1s"
+tcp_server:
+  bind: 
+    - :8001
+  sndbuf: 4096
+  rcvbuf: 4096
+  keepalive: false
+  reader: 32
+  readbuf: 1024
+  readbufsize: 2048
+  writer: 32
+  writebuf: 1024
+  writebufsize: 2048
+websocket_server:
+  bind: 
+    - :8002
+  tlsOpen: false
+  tlsbind: 
+    - :8003
+  certfile: "../../cert.pem"
+  privatefile: "../../private.pem"
+timer:
+  timer: 32
+  timersize: 2048
+protosection:
+  handshaketimeout: "8s"
+  writetimeout: "8s"
+  svrproto: 10
+  cliproto: 5
+whitelist:
+  whitelist: 
+    - 101
+    - 102
+    - 103
+    - 104
+    - 105
+  whitelog: "white_list.log"
+bucket:
+  size: 32
+  channel: 1024
+  room: 1024
+  routineamount: 32
+  routinesize: 1024
+metrics_server:
+  addr: :8005
+discovery:
+  addr: 109.254.2.159:8500
+zipkin:
+  url: http://109.254.2.159:9411
+  service_name: goim-comet
+  reporter:
+    timeout: 5
+    batch_size: 1000
+    batch_interval: 3
+    max_backlog: 3000
