@@ -3,7 +3,7 @@ syntax = "proto3";
 package goim.comet;
 option go_package = "comet";
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "gogo.proto";
 
 /*
  * v1.0.0

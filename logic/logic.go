@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	pb "github.com/swanky2009/goim/grpc/comet"
 	"github.com/swanky2009/goim/logic/g"
 	"github.com/swanky2009/goim/logic/model"
 	xstr "github.com/swanky2009/goim/pkg/strings"
@@ -93,8 +94,15 @@ func (l *Server) RenewOnline(c context.Context, server string, roomCount map[str
 }
 
 // Receive receive a message.
-func (l *Server) Receive(c context.Context, mid int64) (err error) {
+func (l *Server) Receive(c context.Context, mid int64, room string, op int32, msg []byte) (err error) {
 	// TODO upstream message
-	g.Logger.Infof("conn receive a message mid:%d", mid)
+	g.Logger.Debugf("conn receive a message mid:%d room:%s msg:%s", mid, room, string(msg))
+
+	if op == pb.OpSendMsg {
+		err = l.PushRoom(context.TODO(), pb.OpSendMsgReply, room, msg)
+		if err != nil {
+			g.Logger.Warningf("push room mid:%d room:%s error(%v)", mid, room, err)
+		}
+	}
 	return
 }

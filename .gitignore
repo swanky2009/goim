@@ -21,6 +21,5 @@
 Thumbs.db
 
 # cmd
-/cmd/comet/comet
-/cmd/logic/logic
-/cmd/job/job
+*/cmd/runtime
+*/cmd/logs

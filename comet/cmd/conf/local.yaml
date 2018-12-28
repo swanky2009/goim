@@ -1,5 +1,5 @@
 service_name: goim-comet
-runmode: "dev"
+runmode: "test"
 maxproc: 32
 serverTick: "5s"
 onlineTick: "10s"
@@ -19,7 +19,7 @@ tcp_server:
     - :8001
   sndbuf: 4096
   rcvbuf: 4096
-  keepalive: false
+  keepalive: true
   reader: 32
   readbuf: 1024
   readbufsize: 2048
@@ -42,14 +42,6 @@ protosection:
   writetimeout: "8s"
   svrproto: 10
   cliproto: 5
-whitelist:
-  whitelist: 
-    - 101
-    - 102
-    - 103
-    - 104
-    - 105
-  whitelog: "white_list.log"
 bucket:
   size: 32
   channel: 1024

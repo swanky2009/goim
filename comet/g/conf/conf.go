@@ -33,7 +33,6 @@ type Config struct {
 	WebSocket     *WebSocket `yaml:"websocket_server"`
 	Timer         *Timer
 	ProtoSection  *ProtoSection
-	Whitelist     *Whitelist
 	Bucket        *Bucket
 	RPCClient     *RPCClient `yaml:"rpc_lient"`
 	RPCServer     *RPCServer `yaml:"rpc_server"`
@@ -173,10 +172,6 @@ func LoadConf(curPath string) (*Config, error) {
 }
 
 func (c *Config) fix() {
-
-	//Whitelist fix
-	c.Whitelist.WhiteLog = c.LogPath + c.Whitelist.WhiteLog
-
 	if c.Env == nil {
 		c.Env = new(Env)
 	}
@@ -244,10 +239,10 @@ func (r *RPCServer) fix() {
 		r.ForceCloseWait = xtime.Duration(time.Second * 20)
 	}
 	if r.KeepAliveInterval <= 0 {
-		r.KeepAliveInterval = xtime.Duration(time.Second * 20)
+		r.KeepAliveInterval = xtime.Duration(time.Second * 10)
 	}
 	if r.KeepAliveTimeout <= 0 {
-		r.KeepAliveTimeout = xtime.Duration(time.Second * 20)
+		r.KeepAliveTimeout = xtime.Duration(time.Second * 10)
 	}
 }
 

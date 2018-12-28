@@ -39,7 +39,8 @@ const (
 
 const (
 	rawHeaderLen = uint16(16)
-	heart        = 60 * time.Second //s
+	heart        = 20 * time.Second //s
+	msg          = 30 * time.Second //s
 	roomid       = 1
 	platform     = "pc"
 	accepts      = "0,1,2,3,4,5,6,7,8,9,254,255"
@@ -50,7 +51,7 @@ var (
 )
 
 func main() {
-	runtime.GOMAXPROCS(8)
+	runtime.GOMAXPROCS(32)
 	log.Global = log.NewDefaultLogger(log.DEBUG)
 	flag.Parse()
 	defer log.Close()
@@ -100,7 +101,7 @@ func client(key string) {
 
 func startClient(key string) {
 
-	time.Sleep(time.Duration(mrand.Intn(10)) * time.Second)
+	time.Sleep(time.Duration(mrand.Intn(1000)) * time.Millisecond)
 
 	quit := make(chan bool, 1)
 
@@ -111,9 +112,8 @@ func startClient(key string) {
 	}
 	conn.SetReadDeadline(time.Now().Add(heart + 60*time.Second))
 
+	wr := bufio.NewWriterSize(conn, 256)
 	seqId := int32(0)
-	wr := bufio.NewWriterSize(conn, 1024)
-	rd := bufio.NewReaderSize(conn, 1024)
 	proto := new(grpc.Proto)
 	proto.Ver = 1
 	// auth
@@ -144,7 +144,13 @@ func startClient(key string) {
 		proto1.Op = OP_HEARTBEAT
 		proto1.Body = nil
 
+		//msg
+		proto2 := new(grpc.Proto)
+		proto2.Op = OP_SEND_SMS
+		proto2.Body = []byte("hello,everyone! I am " + mid)
+
 		ticker := time.NewTicker(heart)
+		ticker_msg := time.NewTicker(msg)
 		for {
 			select {
 			case <-ticker.C:
@@ -159,21 +165,33 @@ func startClient(key string) {
 				}
 				log.Debug("key:%s Write heartbeat", key)
 				seqId++
-			case <-quit:
-				return
+			case <-ticker_msg.C:
+				proto2.Seq = seqId
+				if err = proto2.WriteTCP(wr); err != nil {
+					log.Error("key:%s WriteTCP() error(%v)", key, err)
+					return
+				}
+				if err = wr.Flush(); err != nil {
+					log.Error("key:%s WriteTCP() error(%v)", key, err)
+					return
+				}
+				log.Debug("key:%s Write send msg(%v)", key, proto2)
+				seqId++
 			default:
+				time.Sleep(500 * time.Millisecond)
 			}
 		}
 	}()
 	// reader
 	go func() {
+		rd := bufio.NewReaderSize(conn, 256)
 		for {
 			if err = proto.ReadTCP(rd); err != nil {
 				if err == io.EOF {
 					time.Sleep(200 * time.Millisecond)
 					continue
 				}
-				log.Error("key:%s tcpReadProto() error(%v)", key, err)
+				log.Error("key:%s tcpReadProto error(%v)", key, err)
 				quit <- true
 				return
 			}
@@ -195,8 +213,13 @@ func startClient(key string) {
 			} else if proto.Op == OP_SEND_SMS_REPLY {
 				log.Debug("key:%s reply msg: %s", key, string(proto.Body))
 				atomic.AddInt64(&countDown, 1)
+				if err = conn.SetReadDeadline(time.Now().Add(heart + 60*time.Second)); err != nil {
+					log.Error("conn.SetReadDeadline() error(%v)", err)
+					quit <- true
+					return
+				}
 			}
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(200 * time.Millisecond)
 		}
 	}()
 

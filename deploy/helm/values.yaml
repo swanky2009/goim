@@ -1,3 +1,4 @@
 images:
-  comments: gxlz/bookinfo:comments-v0.3
-  details: gxlz/bookinfo:details-v0.2
+  comet: swanky2009/goim:comet-v0.1
+  logic: swanky2009/goim:logic-v0.1
+  job: swanky2009/goim:job-v0.1

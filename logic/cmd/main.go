@@ -49,6 +49,8 @@ func main() {
 
 		mux.Handle("/metrics", promhttp.Handler())
 
+		mux.HandleFunc("/check", healthCheck)
+
 		g.Logger.Infof("start metrics server of prometheus listen: %s", g.Conf.MetricsServer.Addr)
 
 		errc <- http.ListenAndServe(g.Conf.MetricsServer.Addr, mux)
@@ -59,4 +61,8 @@ func main() {
 
 	// Run!
 	g.Logger.Infof("goim-logic exit", <-errc)
+}
+
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("ok"))
 }

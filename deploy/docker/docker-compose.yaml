@@ -1,12 +1,12 @@
 version: '2'
 services:
-  mysql.server:
-    image: mysql:5.6
+  kafka.server:
+    image: kafka
     ports:
       - 3406:3306/tcp
     environment:
       - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=bookinfo
+      - MYSQL_DATABASE=goim
     command:
       - --character-set-server=utf8
       - --collation-server=utf8_bin
@@ -21,7 +21,7 @@ services:
     ports:
       - 9090:9090/tcp
     volumes:
-      - $GOPATH/src/bookinfo/docker/prometheus/data:/prometheus-data
+      - /home/goim/deploy/docker/prometheus/data:/prometheus-data
     command: --config.file=/prometheus-data/prometheus.yml
 
   zipkin:
@@ -29,16 +29,16 @@ services:
     ports:
       - 9411:9411/tcp
 
-  books-details:
+  goim-comet:
     image: gxlz/golang:1.10.3-apline3.7
     ports:
-      - 5001:5001
-      - 5002:5002
-      - 5003:5003
-      - 5004:5004
-      - 5005:5005
+      - 8001:8001
+      - 8002:8002
+      - 8003:8003
+      - 8005:8005
+      - 8009:8009
     volumes:
-      - $GOPATH/src/bookinfo:/go/src/bookinfo
+      - $GOPATH/src/goim/comet:/go/src/goim/comet
     depends_on:
       - mysql.server
       - redis.server
@@ -47,28 +47,26 @@ services:
     links:
       - mysql.server
       - redis.server
-      - books-comments
+      - goim-logic
       - zipkin
     entrypoint:
       - ash
       - -c
       - |
         sleep 15 && \
-        cd /go/src/bookinfo/bookdetails-service && \
+        cd /go/src/goim/comet/cmd && \
         echo "RUN_MODE: container" > .env && \
         echo "MIGRATE: yes" >> .env && \
         realize start
 
-  books-comments:
+  goim-logic:
     image: gxlz/golang:1.10.3-apline3.7
     ports:
-      - 5011:5011/tcp
-      - 5012:5012/tcp
-      - 5013:5013/tcp
-      - 5014:5014/tcp
-      - 5015:5015/tcp
+      - 8011:8011
+      - 8012:8012      
+      - 8015:8015
     volumes:
-      - $GOPATH/src/bookinfo:/go/src/bookinfo
+      - $GOPATH/src/goim/logic:/go/src/goim/logic
     depends_on:
       - mysql.server
       - redis.server
@@ -83,7 +81,32 @@ services:
       - -c
       - |
         sleep 15 && \
-        cd /go/src/bookinfo/bookcomments-service && \
+        cd /go/src/goim/logic/cmd && \
+        echo "RUN_MODE: container" > .env && \
+        echo "MIGRATE: yes" >> .env && \
+        realize start
+
+  goim-job:
+    image: gxlz/golang:1.10.3-apline3.7
+    ports:
+      - 8025:8025
+    volumes:
+      - $GOPATH/src/goim/job:/go/src/goim/job
+    depends_on:
+      - mysql.server
+      - redis.server
+      - promethrus
+      - zipkin
+    links:
+      - mysql.server
+      - redis.server
+      - zipkin
+    entrypoint:
+      - ash
+      - -c
+      - |
+        sleep 15 && \
+        cd /go/src/goim/job/cmd && \
         echo "RUN_MODE: container" > .env && \
         echo "MIGRATE: yes" >> .env && \
         realize start

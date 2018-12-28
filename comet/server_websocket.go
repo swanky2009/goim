@@ -147,7 +147,6 @@ func (s *Server) ServeWebsocket(conn net.Conn, rp, wp *bytes.Pool, tr *xtime.Tim
 		err     error
 		accepts []int32
 		rid     string
-		white   bool
 		p       *grpc.Proto
 		b       *Bucket
 		trd     *xtime.TimerData
@@ -218,10 +217,7 @@ func (s *Server) ServeWebsocket(conn net.Conn, rp, wp *bytes.Pool, tr *xtime.Tim
 	}
 	trd.Key = ch.Key
 	tr.Set(trd, _clientHeartbeat)
-	white = whitelist.Contains(ch.Mid)
-	if white {
-		whitelist.Printf("key: %s[%s] auth\n", ch.Key, rid)
-	}
+	g.Logger.Debugf("key: %s[%s] auth", ch.Key, rid)
 	// hanshake ok start dispatch goroutine
 	step = 5
 	// increase ws stat
@@ -231,17 +227,17 @@ func (s *Server) ServeWebsocket(conn net.Conn, rp, wp *bytes.Pool, tr *xtime.Tim
 	serverHeartbeat := s.RandServerHearbeat()
 	for {
 		if p, err = ch.CliProto.Set(); err != nil {
+			g.Logger.Errorf("key: %s ws channel ring set error(%v)", ch.Key, err)
 			break
 		}
-		if white {
-			whitelist.Printf("key: %s start read proto\n", ch.Key)
-		}
+		g.Logger.Debugf("key: %s start read proto\n", ch.Key)
+
 		if err = p.ReadWebsocket(ws); err != nil {
+			g.Logger.Errorf("key: %s ws read proto error(%v)", ch.Key, err)
 			break
 		}
-		if white {
-			whitelist.Printf("key: %s read proto:%v\n", ch.Key, p)
-		}
+		g.Logger.Debugf("key: %s read proto:%v\n", ch.Key, p)
+
 		if p.Op == grpc.OpHeartbeat {
 			tr.Set(trd, _clientHeartbeat)
 			p.Body = nil
@@ -262,17 +258,12 @@ func (s *Server) ServeWebsocket(conn net.Conn, rp, wp *bytes.Pool, tr *xtime.Tim
 				break
 			}
 		}
-		if white {
-			whitelist.Printf("key: %s process proto:%v\n", ch.Key, p)
-		}
+
+		g.Logger.Debugf("key: %s process proto:%v", ch.Key, p)
+
 		ch.CliProto.SetAdv()
 		ch.Signal()
-		if white {
-			whitelist.Printf("key: %s signal\n", ch.Key)
-		}
-	}
-	if white {
-		whitelist.Printf("key: %s server tcp error(%v)\n", ch.Key, err)
+		g.Logger.Debugf("key: %s signal", ch.Key)
 	}
 	if err != nil && err != io.EOF && err != websocket.ErrMessageClose && !strings.Contains(err.Error(), "closed") {
 		g.Logger.Errorf("key: %s server ws failed error(%v)", ch.Key, err)
@@ -285,11 +276,7 @@ func (s *Server) ServeWebsocket(conn net.Conn, rp, wp *bytes.Pool, tr *xtime.Tim
 	if err = s.Disconnect(ch.Mid, ch.Key); err != nil {
 		g.Logger.Errorf("key: %s operator do disconnect error(%v)", ch.Key, err)
 	}
-	if white {
-		whitelist.Printf("key: %s disconnect error(%v)\n", ch.Key, err)
-	}
 	g.Logger.Debugf("websocket disconnected key: %s mid:%d", ch.Key, ch.Mid)
-
 	// decrease ws stat
 	g.StatMetrics.DecrWsOnline()
 }
@@ -302,27 +289,19 @@ func (s *Server) dispatchWebsocket(ws *websocket.Conn, wp *bytes.Pool, wb *bytes
 		err    error
 		finish bool
 		online int32
-		white  = whitelist.Contains(ch.Mid)
 	)
 	g.Logger.Debugf("key: %s start dispatch tcp goroutine", ch.Key)
 
 	for {
-		if white {
-			whitelist.Printf("key: %s wait proto ready\n", ch.Key)
-		}
+		g.Logger.Debugf("key: %s wait proto ready", ch.Key)
+
 		var p = ch.Ready()
-		if white {
-			whitelist.Printf("key: %s proto ready\n", ch.Key)
-		}
+
 		g.Logger.Debugf("key:%s dispatch msg:%s", ch.Key, p.Body)
 
 		switch p {
 		case grpc.ProtoFinish:
-			if white {
-				whitelist.Printf("key: %s receive proto finish\n", ch.Key)
-			}
 			g.Logger.Debugf("key: %s wakeup exit dispatch goroutine", ch.Key)
-
 			finish = true
 			goto failed
 		case grpc.ProtoReady:
@@ -332,9 +311,9 @@ func (s *Server) dispatchWebsocket(ws *websocket.Conn, wp *bytes.Pool, wb *bytes
 					err = nil // must be empty error
 					break
 				}
-				if white {
-					whitelist.Printf("key: %s start write client proto%v\n", ch.Key, p)
-				}
+
+				g.Logger.Debugf("key: %s start write client proto(%v)", ch.Key, p)
+
 				if p.Op == grpc.OpHeartbeatReply {
 					if ch.Room != nil {
 						online = ch.Room.OnlineNum()
@@ -347,39 +326,29 @@ func (s *Server) dispatchWebsocket(ws *websocket.Conn, wp *bytes.Pool, wb *bytes
 						goto failed
 					}
 				}
-				if white {
-					whitelist.Printf("key: %s write client proto%v\n", ch.Key, p)
-				}
+
+				g.Logger.Debugf("key: %s write client proto(%v)", ch.Key, p)
+
 				p.Body = nil // avoid memory leak
 				ch.CliProto.GetAdv()
 			}
 		default:
-			if white {
-				whitelist.Printf("key: %s start write server proto%v\n", ch.Key, p)
-			}
+			g.Logger.Debugf("key: %s start write server proto(%v)", ch.Key, p)
 			if err = p.WriteWebsocket(ws); err != nil {
 				goto failed
 			}
-			if white {
-				whitelist.Printf("key: %s write server proto%v\n", ch.Key, p)
-			}
-			g.Logger.Debugf("websocket sent a message key:%s mid:%d proto:%+v", ch.Key, ch.Mid, p)
+			g.Logger.Debugf("key: %s write server proto(%v)", ch.Key, p)
+			g.Logger.Debugf("websocket sent a message key:%s mid:%d proto(%v)", ch.Key, ch.Mid, p)
 		}
-		if white {
-			whitelist.Printf("key: %s start flush \n", ch.Key)
-		}
+		g.Logger.Debugf("key: %s ws write start flush", ch.Key)
 		// only hungry flush response
 		if err = ws.Flush(); err != nil {
+			g.Logger.Errorf("key: %s ws write flush error(%v)", ch.Key, err)
 			break
 		}
-		if white {
-			whitelist.Printf("key: %s flush\n", ch.Key)
-		}
+		g.Logger.Debugf("key: %s ws write end flush", ch.Key)
 	}
 failed:
-	if white {
-		whitelist.Printf("key: %s dispatch tcp error(%v)\n", ch.Key, err)
-	}
 	if err != nil && err != io.EOF && err != websocket.ErrMessageClose {
 		g.Logger.Errorf("key: %s dispatch ws error(%v)", ch.Key, err)
 	}

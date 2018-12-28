@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-helm upgrade --install --namespace bookinfo --debug bookinfo bookinfo
+helm upgrade --install --namespace goim --debug goim goim

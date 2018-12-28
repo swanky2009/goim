@@ -94,7 +94,6 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 		err     error
 		rid     string
 		accepts []int32
-		white   bool
 		p       *grpc.Proto
 		b       *Bucket
 		trd     *xtime.TimerData
@@ -136,10 +135,6 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 	}
 	trd.Key = ch.Key
 	tr.Set(trd, _clientHeartbeat)
-	white = whitelist.Contains(ch.Mid)
-	if white {
-		whitelist.Printf("key: %s[%s] auth\n", ch.Key, rid)
-	}
 	step = 3
 	// increase tcp stat
 	g.StatMetrics.IncrTcpOnline()
@@ -148,17 +143,17 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 	serverHeartbeat := s.RandServerHearbeat()
 	for {
 		if p, err = ch.CliProto.Set(); err != nil {
+			g.Logger.Errorf("key: %s tcp channel ring set error(%v)", ch.Key, err)
 			break
 		}
-		if white {
-			whitelist.Printf("key: %s start read proto\n", ch.Key)
-		}
+		g.Logger.Debugf("key: %s tcp start read proto", ch.Key)
+
 		if err = p.ReadTCP(rr); err != nil {
+			g.Logger.Errorf("key: %s tcp read proto error(%v)", ch.Key, err)
 			break
 		}
-		if white {
-			whitelist.Printf("key: %s read proto:%v\n", ch.Key, p)
-		}
+		g.Logger.Debugf("key: %s tcp end read proto:%v", ch.Key, p)
+
 		if p.Op == grpc.OpHeartbeat {
 			tr.Set(trd, _clientHeartbeat)
 			p.Body = nil
@@ -175,21 +170,21 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 			step++
 		} else {
 			if err = s.Operate(p, ch, b); err != nil {
+				g.Logger.Errorf("key: %s tcp operate error(%v)", ch.Key, err)
 				break
 			}
 		}
-		if white {
-			whitelist.Printf("key: %s process proto:%v\n", ch.Key, p)
-		}
+
+		g.Logger.Debugf("key: %s process proto:%v", ch.Key, p)
+
 		ch.CliProto.SetAdv()
 		ch.Signal()
-		if white {
-			whitelist.Printf("key: %s signal\n", ch.Key)
-		}
+
+		g.Logger.Debugf("key: %s signal", ch.Key)
 	}
-	if white {
-		whitelist.Printf("key: %s server tcp error(%v)\n", ch.Key, err)
-	}
+
+	g.Logger.Debugf("key: %s server tcp error(%v)", ch.Key, err)
+
 	if err != nil && err != io.EOF && !strings.Contains(err.Error(), "closed") {
 		g.Logger.Errorf("key: %s server tcp failed error(%v)", ch.Key, err)
 	}
@@ -199,13 +194,9 @@ func (s *Server) ServeTCP(conn *net.TCPConn, rp, wp *bytes.Pool, tr *xtime.Timer
 	conn.Close()
 	ch.Close()
 	if err = s.Disconnect(ch.Mid, ch.Key); err != nil {
-		g.Logger.Error("key: %s operator do disconnect error(%v)", ch.Key, err)
-	}
-	if white {
-		whitelist.Printf("key: %s disconnect error(%v)\n", ch.Key, err)
+		g.Logger.Errorf("key: %s operator do disconnect error(%v)", ch.Key, err)
 	}
 	g.Logger.Debugf("tcp disconnected key: %s mid:%d", ch.Key, ch.Mid)
-
 	// decrease tcp stat
 	g.StatMetrics.DecrTcpOnline()
 }
@@ -218,27 +209,17 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, wr *bufio.Writer, wp *bytes.Pool
 		err    error
 		finish bool
 		online int32
-		white  = whitelist.Contains(ch.Mid)
 	)
 	g.Logger.Debugf("key: %s start dispatch tcp goroutine", ch.Key)
 
 	for {
-		if white {
-			whitelist.Printf("key: %s wait proto ready\n", ch.Key)
-		}
 		var p = ch.Ready()
-		if white {
-			whitelist.Printf("key: %s proto ready\n", ch.Key)
-		}
-		g.Logger.Debugf("key:%s dispatch msg:%v", ch.Key, *p)
+
+		g.Logger.Debugf("key: %s dispatch msg: %v", ch.Key, *p)
 
 		switch p {
 		case grpc.ProtoFinish:
-			if white {
-				whitelist.Printf("key: %s receive proto finish\n", ch.Key)
-			}
 			g.Logger.Debugf("key: %s wakeup exit dispatch goroutine", ch.Key)
-
 			finish = true
 			goto failed
 		case grpc.ProtoReady:
@@ -248,9 +229,8 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, wr *bufio.Writer, wp *bytes.Pool
 					err = nil // must be empty error
 					break
 				}
-				if white {
-					whitelist.Printf("key: %s start write client proto%v\n", ch.Key, p)
-				}
+				g.Logger.Debugf("key: %s start write client proto(%v)", ch.Key, p)
+
 				if p.Op == grpc.OpHeartbeatReply {
 					if ch.Room != nil {
 						online = ch.Room.OnlineNum()
@@ -263,40 +243,26 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, wr *bufio.Writer, wp *bytes.Pool
 						goto failed
 					}
 				}
-				if white {
-					whitelist.Printf("key: %s write client proto%v\n", ch.Key, p)
-				}
+				g.Logger.Debugf("key: %s write client proto%v", ch.Key, p)
 				p.Body = nil // avoid memory leak
 				ch.CliProto.GetAdv()
 			}
 		default:
-			if white {
-				whitelist.Printf("key: %s start write server proto%v\n", ch.Key, p)
-			}
 			// server send
 			if err = p.WriteTCP(wr); err != nil {
 				goto failed
 			}
-			if white {
-				whitelist.Printf("key: %s write server proto%v\n", ch.Key, p)
-			}
-			g.Logger.Debugf("tcp sent a message key:%s mid:%d proto:%+v", ch.Key, ch.Mid, p)
+			g.Logger.Debugf("tcp sent a message key:%s mid:%d proto(%v)", ch.Key, ch.Mid, p)
 		}
-		if white {
-			whitelist.Printf("key: %s start flush \n", ch.Key)
-		}
+		g.Logger.Debugf("key: %s tcp write start flush", ch.Key)
 		// only hungry flush response
 		if err = wr.Flush(); err != nil {
+			g.Logger.Errorf("key: %s tcp write flush error(%v)", ch.Key, err)
 			break
 		}
-		if white {
-			whitelist.Printf("key: %s flush\n", ch.Key)
-		}
+		g.Logger.Debugf("key: %s tcp write end flush", ch.Key)
 	}
 failed:
-	if white {
-		whitelist.Printf("key: %s dispatch tcp error(%v)\n", ch.Key, err)
-	}
 	if err != nil {
 		g.Logger.Errorf("key: %s dispatch tcp error(%v)", ch.Key, err)
 	}

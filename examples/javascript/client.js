@@ -24,7 +24,7 @@
         var textEncoder = new TextEncoder();
         var heartbeatInterval;
         function connect() {
-            var ws = new WebSocket('ws://127.0.0.1:8090/sub');
+            var ws = new WebSocket('ws://127.0.0.1:8002/sub');
             ws.binaryType = 'arraybuffer';
             ws.onopen = function() {
                 auth();
@@ -83,11 +83,17 @@
                 console.log("send: heartbeat");
             }
 
-            function auth() {
-                var token = "1" // userID
+            function auth() {             
                 var headerBuf = new ArrayBuffer(rawHeaderLen);
                 var headerView = new DataView(headerBuf, 0);
-                var bodyBuf = textEncoder.encode(token);
+                // TODO test example: mid|key|roomid|platform|accepts
+                var mid = 99;
+                var key = 99;
+                var roomid  = 1;
+                var platform = "pc";
+                var accepts = "0,1,2,3,4,5,6,7,8,9,254,255";              
+                body = mid+"|"+key+"|"+roomid+"|"+ platform+"|"+ accepts;          
+                var bodyBuf = textEncoder.encode(body);
                 headerView.setInt32(packetOffset, rawHeaderLen + bodyBuf.byteLength);
                 headerView.setInt16(headerOffset, rawHeaderLen);
                 headerView.setInt16(verOffset, 1);

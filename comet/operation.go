@@ -59,9 +59,12 @@ func (s *Server) RenewOnline(serverID string, rommCount map[string]int32) (allRo
 }
 
 // Report message to logic.
-func (s *Server) Report(mid int64, proto *model.Proto) (rp *model.Proto, err error) {
+func (s *Server) Report(mid int64, room string, p *model.Proto) (rp *model.Proto, err error) {
 	if _, err = s.rpcClient.Receive(context.Background(), &logic.ReceiveReq{
-		Mid: mid,
+		Mid:  mid,
+		Op:   p.Op,
+		Room: room,
+		Msg:  p.Body,
 	}); err != nil {
 		return
 	}
@@ -71,12 +74,13 @@ func (s *Server) Report(mid int64, proto *model.Proto) (rp *model.Proto, err err
 // Operate .
 func (s *Server) Operate(p *model.Proto, ch *Channel, b *Bucket) (err error) {
 	switch {
-	case p.Op >= model.MinBusinessOp && p.Op <= model.MaxBusinessOp:
+	case p.Op == model.OpSendMsg:
 		// TODO report a message
-		_, err = s.Report(ch.Mid, p)
-		if err != nil {
-			return
-		}
+		_, err = s.Report(ch.Mid, ch.Room.ID, p)
+		p.Op = model.OpSendMsgReply
+		p.Body = []byte("send message ok")
+	case p.Op >= model.MinBusinessOp && p.Op <= model.MaxBusinessOp:
+		// TODO Business message
 		p.Body = nil
 	case p.Op == model.OpChangeRoom:
 		err = b.ChangeRoom(string(p.Body), ch)

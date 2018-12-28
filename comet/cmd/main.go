@@ -27,12 +27,6 @@ func main() {
 	srv = comet.NewServer(g.Conf)
 
 	wg.Wrap(func() {
-		if err := comet.InitWhitelist(g.Conf.Whitelist); err != nil {
-			errc <- err
-		}
-	})
-
-	wg.Wrap(func() {
 		if err := comet.InitTCP(srv, g.Conf.TCP.Bind, g.Conf.MaxProc); err != nil {
 			errc <- err
 		}
@@ -65,6 +59,8 @@ func main() {
 
 		mux.Handle("/metrics", promhttp.Handler())
 
+		mux.HandleFunc("/check", healthCheck)
+
 		g.Logger.Infof("start metrics server of prometheus listen: %s", g.Conf.MetricsServer.Addr)
 
 		errc <- http.ListenAndServe(g.Conf.MetricsServer.Addr, mux)
@@ -75,4 +71,8 @@ func main() {
 
 	// Run!
 	g.Logger.Infof("goim-comet exit", <-errc)
+}
+
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("ok"))
 }

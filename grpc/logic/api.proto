@@ -1,10 +1,13 @@
+// goim logic grpc proto
+// build: protoc --go_out=plugins=grpc:. api.proto
+
 syntax = "proto3";
 
 package goim.logic;
 
 option go_package = "logic";
 
-import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "gogo.proto";
 
 message PushMsg {
     enum Type {
@@ -82,6 +85,9 @@ message OnlineReply {
 
 message ReceiveReq {
     int64 mid = 1;
+    int32 op = 2;
+    string room = 3;
+    bytes msg = 4;
 }
 
 message ReceiveReply {

@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-helm delete --purge bookinfo
+helm delete --purge goim

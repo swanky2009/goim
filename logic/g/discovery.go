@@ -35,12 +35,26 @@ func InstanceDiscovery() error {
 		Address: host,
 	}
 
-	//增加check
+	//增加check  consul 0.7以上版本才支持 grpc health check
+	// check := &consulapi.AgentServiceCheck{
+	// 	Interval:                       time.Duration(Conf.RPCServer.KeepAliveInterval).String(),
+	// 	Timeout:                        time.Duration(Conf.RPCServer.Timeout).String(),
+	// 	DeregisterCriticalServiceAfter: time.Duration(Conf.RPCServer.IdleTimeout).String(),
+	// 	GRPC:                           fmt.Sprintf("%v:%v/%v", host, portInt, Conf.ServiceName),
+	// }
+	//增加check consul 0.7以下版本用 http health check
+	mhost, mport, err := net.SplitHostPort(Conf.MetricsServer.Addr)
+	if err != nil {
+		return errors.New("metrics server addr error")
+	}
+	if mhost == "" {
+		mhost = host
+	}
 	check := &consulapi.AgentServiceCheck{
 		Interval:                       time.Duration(Conf.RPCServer.KeepAliveInterval).String(),
 		Timeout:                        time.Duration(Conf.RPCServer.Timeout).String(),
 		DeregisterCriticalServiceAfter: time.Duration(Conf.RPCServer.IdleTimeout).String(),
-		GRPC:                           fmt.Sprintf("%v:%v/%v", host, portInt, Conf.ServiceName),
+		HTTP:                           fmt.Sprintf("http://%s:%s/check", mhost, mport),
 	}
 	registration.Check = check
 

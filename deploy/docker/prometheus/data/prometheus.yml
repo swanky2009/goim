@@ -11,19 +11,27 @@ scrape_configs:
     static_configs:
     - targets:
       - localhost:9090
-  - job_name: books-details
+  - job_name: goim-comet
     scrape_interval: 2s
     scrape_timeout: 1s
     metrics_path: /metrics
     scheme: http
     static_configs:
     - targets:
-      - books-details:5004
-  - job_name: books-comments
+      - goim-comet:8005
+  - job_name: goim-logic
     scrape_interval: 2s
     scrape_timeout: 1s
     metrics_path: /metrics
     scheme: http
     static_configs:
     - targets:
-      - books-comments:5014
+      - goim-logic:8015
+  - job_name: goim-job
+    scrape_interval: 2s
+    scrape_timeout: 1s
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+    - targets:
+      - goim-job:8025

@@ -403,6 +403,12 @@
 			"revisionTime": "2017-05-26T17:33:01Z"
 		},
 		{
+			"checksumSHA1": "w9kLe4LcJGOX30CN/J+pF8cIZeQ=",
+			"path": "github.com/mitchellh/mapstructure",
+			"revision": "d0303fe809921458f417bcf828397a65db30a7e4",
+			"revisionTime": "2017-05-23T03:00:23Z"
+		},
+		{
 			"checksumSHA1": "8I1Vo5xn4fnvdYJD+j/5r2+80Kc=",
 			"path": "github.com/openzipkin/zipkin-go",
 			"revision": "153cbaf00479b4afbce079cb6eb3e9bb256dc572",

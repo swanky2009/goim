@@ -202,10 +202,10 @@ func (r *RPCServer) fix() {
 		r.ForceCloseWait = xtime.Duration(time.Second * 20)
 	}
 	if r.KeepAliveInterval <= 0 {
-		r.KeepAliveInterval = xtime.Duration(time.Second * 60)
+		r.KeepAliveInterval = xtime.Duration(time.Second * 10)
 	}
 	if r.KeepAliveTimeout <= 0 {
-		r.KeepAliveTimeout = xtime.Duration(time.Second * 20)
+		r.KeepAliveTimeout = xtime.Duration(time.Second * 10)
 	}
 }
 
