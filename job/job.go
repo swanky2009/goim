@@ -15,7 +15,7 @@ import (
 type Job struct {
 	//c        *conf.Config
 	consumer *cluster.Consumer
-	comet    *Comet
+	comets   *Comets
 }
 
 // New new a push job.
@@ -23,7 +23,7 @@ func New(c *conf.Config) *Job {
 	j := &Job{
 		//c:        c,
 		consumer: newKafkaSub(c.Kafka),
-		comet:    NewComet(c.Comet),
+		comets:   InitComets(c.Comet),
 	}
 	return j
 }

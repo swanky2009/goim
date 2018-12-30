@@ -24,7 +24,7 @@ var (
 
 	Logger logger
 
-	//StatMetrics *Metrics
+	MetricsStat *Metrics
 )
 
 func init() {
@@ -52,8 +52,8 @@ func init() {
 
 	Logger.Infof("goim-job [version: %s env: %+v] start", ver, Conf.Env)
 
-	//Metrics
-	//StatMetrics = MetricsInstrumenting()
+	//stat
+	MetricsStat = MetricsInstrumenting()
 }
 
 func GetCurrentDir() string {
