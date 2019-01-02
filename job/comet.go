@@ -11,10 +11,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	syncCometServersDelay = 10 * time.Minute
-)
-
 // Comet is a comet.
 type Comet struct {
 	serverID      string
@@ -126,6 +122,15 @@ func (c *Comet) process(pushChan chan *pb.PushMsgReq, roomChan chan *pb.Broadcas
 	}
 }
 
+func (c *Comet) GetRooms() map[string]bool {
+	roomsReply, err := c.client.Rooms(context.Background(), &pb.RoomsReq{})
+	if err != nil {
+		g.Logger.Warnf("get commet rooms serverId:%s error(%v)", c.serverID, err)
+		return nil
+	}
+	return roomsReply.Rooms
+}
+
 // Close close the resouces.
 func (c *Comet) Close() {
 	finish := make(chan bool)
@@ -153,125 +158,4 @@ func (c *Comet) Close() {
 	}
 	c.cancel()
 	return
-}
-
-type Comets struct {
-	cometServiceMap map[string]*Comet
-}
-
-func (this *Comets) InitComets(c *conf.Comet) {
-
-	this.cometServiceMap = make(map[int32]*Comet)
-
-	state := g.ServiceInstancer.GetState()
-
-	if state.Err != nil {
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	for _, addr := range state.Instances {
-
-		g.Logger.Debugf("rpc addr: %s", addr)
-
-		this.cometServiceMap[addr] = NewComet(c, addr)
-
-		g.Logger.Infof("init comet rpc: %s", addr)
-	}
-	go this.SyncComets(c)
-
-	//room info
-	this.MergeRoomServers()
-
-	go this.SyncRoomServers()
-
-	return
-}
-
-func (this *Comets) SyncComets(c *conf.Comet) {
-	for {
-		state := ServiceInstancer.GetState()
-
-		if state.Err != nil {
-			if err != nil {
-				panic(err)
-			}
-		}
-		addrs := make(map[string]string)
-
-		for _, addr := range state.Instances {
-			if _, ok = cometServiceMap[addr]; !ok {
-				this.cometServiceMap[addr] = NewComet(c, addr)
-				g.Logger.Infof("init new comet rpc: %s", addr)
-			}
-			addrs[addr] = addr
-		}
-		for serverId, comet := range cometServiceMap {
-			if _, ok = addrs[serverId]; !ok {
-				comet.Close()
-				delete(cometServiceMap, comet)
-			}
-		}
-		time.Sleep(syncCometServersDelay)
-	}
-}
-
-// push a message to a batch of subkeys
-func (this *Comets) Push(serverId string, args *pb.PushMsgReq) {
-
-	if c, ok := cometServiceMap[serverId]; ok {
-
-		if err := c.Push(&args); err != nil {
-
-			log.Error("c.Push(%v) serverId:%s error(%v)", args, serverId, err)
-
-			//MetricsStat.IncrPushMsgFailed()
-		}
-	}
-	MetricsStat.IncrPushMsg()
-}
-
-// broadcast a message to all
-func (this *Comets) Broadcast(args *pb.BroadcastReq) {
-
-	for serverId, c := range cometServiceMap {
-
-		if err := c.Broadcast(&args); err != nil {
-
-			log.Error("c.Broadcast(%v) serverId:%d error(%v)", args, serverId, err)
-
-			//MetricsStat.IncrBroadcastMsgFailed()
-		}
-	}
-	MetricsStat.IncrBroadcastMsg()
-}
-
-// broadcast aggregation messages to room
-func (this *Comets) BroadcastRoom(args *pb.BroadcastRoomReq) {
-	var (
-		c        *Comet
-		serverId int32
-		servers  map[int32]struct{}
-		ok       bool
-		err      error
-	)
-
-	// if servers, ok = RoomServersMap[roomId]; ok {
-
-	// 	for serverId, _ = range servers {
-
-	// 		if c, ok = cometServiceMap[serverId]; ok {
-
-	// 			// push routines
-	// 			if err = c.BroadcastRoom(&args); err != nil {
-
-	// 				log.Error("c.BroadcastRoom(%v) roomId:%d error(%v)", args, roomId, err)
-
-	// 				//MetricsStat.IncrBroadcastRoomMsgFailed()
-	// 			}
-	// 		}
-	// 	}
-	//}
-	MetricsStat.IncrBroadcastRoomMsg()
 }

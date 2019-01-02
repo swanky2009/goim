@@ -44,8 +44,8 @@ func (j *Job) Close() {
 	if j.consumer != nil {
 		j.consumer.Close()
 	}
-	if j.comet != nil {
-		j.comet.Close()
+	if j.comets != nil {
+		j.comets.Close()
 	}
 }
 
