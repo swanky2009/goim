@@ -30,7 +30,7 @@ type Metrics struct {
 }
 
 func MetricsInstrumenting() *Metrics {
-	//namespace, subsystem := "goim", "comet"
+	//namespace, subsystem := "goim", "job"
 	//fieldKeys := []string{"count"}
 
 	// AllMsg := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
@@ -71,12 +71,12 @@ func MetricsInstrumenting() *Metrics {
 	// }, fieldKeys)
 
 	return &Metrics{
-	// AllMsg,
-	// PushMsg,
-	// BroadcastMsg,
-	// BroadcastRoomMsg,
-	// SpeedMsgSecond,
-	// CometNodes,
+		// AllMsg,
+		// PushMsg,
+		// BroadcastMsg,
+		// BroadcastRoomMsg,
+		// SpeedMsgSecond,
+		// CometNodes,
 	}
 }
 

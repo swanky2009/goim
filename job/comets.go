@@ -6,6 +6,7 @@ import (
 	pb "github.com/swanky2009/goim/grpc/comet"
 	"github.com/swanky2009/goim/job/g"
 	"github.com/swanky2009/goim/job/g/conf"
+	"github.com/swanky2009/goim/pkg/hash"
 )
 
 const (
@@ -32,11 +33,11 @@ func InitComets(c *conf.Comet) *Comets {
 
 	for _, addr := range state.Instances {
 
-		g.Logger.Debugf("rpc addr: %s", addr)
+		serverId := hash.Sha1s(addr)
 
-		comets.cometServiceMap[addr] = NewComet(c, addr)
+		comets.cometServiceMap[serverId] = NewComet(c, addr)
 
-		g.Logger.Infof("init comet rpc: %s", addr)
+		g.Logger.Infof("init comet serverId: %s rpc: %s", serverId, addr)
 	}
 	go comets.SyncComets(c)
 
@@ -55,17 +56,23 @@ func (this *Comets) SyncComets(c *conf.Comet) {
 		if state.Err != nil {
 			g.Logger.Warnf("get comet rpc services error(%v)", state.Err)
 		}
-		addrs := make(map[string]string)
+
+		servers := make(map[string]string)
 
 		for _, addr := range state.Instances {
-			if _, ok := this.cometServiceMap[addr]; !ok {
-				this.cometServiceMap[addr] = NewComet(c, addr)
-				g.Logger.Infof("init new comet rpc: %s", addr)
+
+			serverId := hash.Sha1s(addr)
+
+			if _, ok := this.cometServiceMap[serverId]; !ok {
+
+				this.cometServiceMap[serverId] = NewComet(c, addr)
+
+				g.Logger.Infof("init new comet  serverId: %s rpc: %s", serverId, addr)
 			}
-			addrs[addr] = addr
+			servers[serverId] = addr
 		}
 		for serverId, comet := range this.cometServiceMap {
-			if _, ok := addrs[serverId]; !ok {
+			if _, ok := servers[serverId]; !ok {
 				comet.Close()
 				delete(this.cometServiceMap, serverId)
 			}

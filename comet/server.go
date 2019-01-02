@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
-	"os"
+	"net"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/swanky2009/goim/comet/g"
 	"github.com/swanky2009/goim/comet/g/conf"
 	"github.com/swanky2009/goim/grpc/logic"
+	"github.com/swanky2009/goim/pkg/hash"
+	"github.com/swanky2009/goim/pkg/ip"
 	"github.com/zhenjl/cityhash"
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
@@ -54,24 +55,36 @@ func newLogicClient(c *conf.RPCClient) logic.LogicClient {
 	return logic.NewLogicClient(conn)
 }
 
+// serverID sha1(host:port)
+func getServerID(c *conf.RPCServer) string {
+	host, port, err := net.SplitHostPort(c.Addr)
+	if err != nil {
+		panic(err)
+	}
+	if host == "" {
+		host = ip.InternalIP()
+	}
+	return hash.Sha1s(fmt.Sprintf("%s:%s", host, port))
+}
+
 // NewServer returns a new Server.
 func NewServer(c *conf.Config) *Server {
 	s := &Server{
 		c:         c,
 		round:     NewRound(c),
 		rpcClient: newLogicClient(c.RPCClient),
+		serverID:  getServerID(c.RPCServer),
 	}
+
 	// init bucket
 	s.buckets = make([]*Bucket, c.Bucket.Size)
+
 	s.bucketIdx = uint32(c.Bucket.Size)
+
 	for i := 0; i < c.Bucket.Size; i++ {
 		s.buckets[i] = NewBucket(c.Bucket)
 	}
-	var err error
-	if s.serverID, err = os.Hostname(); err != nil {
-		u, _ := uuid.NewRandom()
-		s.serverID = u.String()
-	}
+
 	go s.onlineproc()
 	return s
 }
@@ -83,6 +96,7 @@ func (s *Server) Buckets() []*Bucket {
 
 // Bucket get the bucket by subkey.
 func (s *Server) Bucket(subKey string) *Bucket {
+
 	idx := cityhash.CityHash32([]byte(subKey), uint32(len(subKey))) % s.bucketIdx
 
 	g.Logger.Debugf("%s hit channel bucket index: %d use cityhash", subKey, idx)
@@ -92,10 +106,6 @@ func (s *Server) Bucket(subKey string) *Bucket {
 
 // NextKey generate a server key.
 func (s *Server) NextKey() string {
-	u, err := uuid.NewRandom()
-	if err == nil {
-		return u.String()
-	}
 	return fmt.Sprintf("%s-%d", s.serverID, time.Now().UnixNano())
 }
 

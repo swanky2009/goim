@@ -51,7 +51,7 @@ var (
 )
 
 func main() {
-	runtime.GOMAXPROCS(32)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	log.Global = log.NewDefaultLogger(log.DEBUG)
 	flag.Parse()
 	defer log.Close()
@@ -150,7 +150,7 @@ func startClient(key string) {
 		proto2.Body = []byte("hello,everyone! I am " + mid)
 
 		ticker := time.NewTicker(heart)
-		ticker_msg := time.NewTicker(msg)
+		//ticker_msg := time.NewTicker(msg)
 		for {
 			select {
 			case <-ticker.C:
@@ -165,18 +165,18 @@ func startClient(key string) {
 				}
 				log.Debug("key:%s Write heartbeat", key)
 				seqId++
-			case <-ticker_msg.C:
-				proto2.Seq = seqId
-				if err = proto2.WriteTCP(wr); err != nil {
-					log.Error("key:%s WriteTCP() error(%v)", key, err)
-					return
-				}
-				if err = wr.Flush(); err != nil {
-					log.Error("key:%s WriteTCP() error(%v)", key, err)
-					return
-				}
-				log.Debug("key:%s Write send msg(%v)", key, proto2)
-				seqId++
+			// case <-ticker_msg.C:
+			// 	proto2.Seq = seqId
+			// 	if err = proto2.WriteTCP(wr); err != nil {
+			// 		log.Error("key:%s WriteTCP() error(%v)", key, err)
+			// 		return
+			// 	}
+			// 	if err = wr.Flush(); err != nil {
+			// 		log.Error("key:%s WriteTCP() error(%v)", key, err)
+			// 		return
+			// 	}
+			// 	log.Debug("key:%s Write send msg(%v)", key, proto2)
+			// 	seqId++
 			default:
 				time.Sleep(500 * time.Millisecond)
 			}
