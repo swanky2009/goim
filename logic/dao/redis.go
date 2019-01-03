@@ -94,16 +94,15 @@ func (d *Dao) DelMapping(c context.Context, mid int64, key, server string) (has 
 
 // ServersByKeys get a server by key.
 func (d *Dao) ServersByKeys(c context.Context, keys []string) (res []string, err error) {
-	var args []string
+
 	for _, key := range keys {
-		args = append(args, keyKeyServer(key))
-	}
-	var vals []interface{}
-	if vals, err = d.redis.MGet(args...).Result(); err != nil {
-		g.Logger.Errorf("redis.Do(MGET %v) error(%v)", args, err)
-	}
-	for _, v := range vals {
-		res = append(res, v.(string))
+		args := keyKeyServer(key)
+
+		if val, err := d.redis.Get(args).Result(); err != nil && err != redis.Nil {
+			g.Logger.Errorf("redis.Do(GET %v) error(%v)", args, err)
+		} else {
+			res = append(res, val)
+		}
 	}
 	return
 }

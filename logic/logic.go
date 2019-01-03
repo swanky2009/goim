@@ -30,6 +30,10 @@ func (l *Server) Connect(c context.Context, server, serverKey, cookie string, to
 	if accepts, err = xstr.SplitInt32s(params[4], ","); err != nil {
 		return
 	}
+	if err = l.dao.AddMapping(c, mid, key, server); err != nil {
+		g.Logger.Errorf("l.dao.AddMapping(%d,%s,%s) error(%v)", mid, key, server, err)
+		return
+	}
 	g.Logger.Infof("conn connected key:%s server:%s mid:%d token:%s", key, server, mid, token)
 	return
 }

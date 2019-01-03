@@ -10,8 +10,12 @@ import (
 func (l *Server) PushKeys(c context.Context, op int32, keys []string, msg []byte) (err error) {
 	servers, err := l.dao.ServersByKeys(c, keys)
 	if err != nil {
+		g.Logger.Errorf("dao.ServersByKeys error(%v)", err)
 		return
 	}
+
+	g.Logger.Debugf("dao.ServersByKeys servers(%v)", servers)
+
 	pushKeys := make(map[string][]string)
 	for i, key := range keys {
 		server := servers[i]
@@ -21,6 +25,7 @@ func (l *Server) PushKeys(c context.Context, op int32, keys []string, msg []byte
 	}
 	for server := range pushKeys {
 		if err = l.dao.PushMsg(c, op, server, pushKeys[server], msg); err != nil {
+			g.Logger.Errorf("dao.PushMsg error(%v)", err)
 			return
 		}
 	}

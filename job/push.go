@@ -6,6 +6,7 @@ import (
 
 	pb_c "github.com/swanky2009/goim/grpc/comet"
 	pb_l "github.com/swanky2009/goim/grpc/logic"
+	"github.com/swanky2009/goim/job/g"
 )
 
 func (j *Job) push(ctx context.Context, m *pb_l.PushMsg) (err error) {
@@ -15,6 +16,8 @@ func (j *Job) push(ctx context.Context, m *pb_l.PushMsg) (err error) {
 		proto := &pb_c.Proto{Ver: 0, Op: m.Operation, Body: m.Msg}
 
 		j.comets.Push(m.Server, &pb_c.PushMsgReq{Keys: m.Keys, ProtoOp: m.Operation, Proto: proto})
+
+		g.Logger.Debugf("push msg serverId: %s keys(%v)", m.Server, m.Keys)
 
 	case pb_l.PushMsg_ROOM:
 
