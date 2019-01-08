@@ -2,21 +2,20 @@ package dao
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 
 	"github.com/go-redis/redis"
 	"github.com/swanky2009/goim/logic/g"
-	"github.com/swanky2009/goim/logic/model"
-	"github.com/zhenjl/cityhash"
+	"github.com/swanky2009/goim/pkg/hash"
 )
 
 const (
-	_prefixMidServer    = "mid_%d"  // mid -> key:server
-	_prefixKeyServer    = "key_%s"  // key -> server
-	_prefixServerOnline = "ol_%s"   // server -> online
-	_keyServerInfo      = "servers" // key -> server:info
+	_prefixMidServer  = "mid_%d"  // mid -> key:server     hset
+	_prefixKeyServer  = "key_%s"  // key -> server         string
+	_prefixRoomCounts = "room_%s" // room -> server:count  hset
+	_keyRooms         = "rooms"   // key -> room list 	   set
+	_keyServers       = "servers" // key -> server list    sortedset
 )
 
 func keyMidServer(mid int64) string {
@@ -27,8 +26,8 @@ func keyKeyServer(key string) string {
 	return fmt.Sprintf(_prefixKeyServer, key)
 }
 
-func keyServerOnline(key string) string {
-	return fmt.Sprintf(_prefixServerOnline, key)
+func keyRoomCounts(room string) string {
+	return fmt.Sprintf(_prefixRoomCounts, hash.Sha1s(room))
 }
 
 // pingRedis check redis connection.
@@ -39,10 +38,10 @@ func (d *Dao) pingRedis(c context.Context) (err error) {
 
 // AddMapping add a mapping.
 // Mapping:
-//	mid -> key_server
-//	key -> server
+// mid:用户ID key:设备ID
+// mid -> key_server  一个用户可同时登录多个设备
+// key -> server 一个用户设备对应一个server
 func (d *Dao) AddMapping(c context.Context, mid int64, key, server string) (err error) {
-
 	if mid > 0 {
 		if err = d.redis.HSet(keyMidServer(mid), key, server).Err(); err != nil {
 			g.Logger.Errorf("redis.Send(HSET %d,%s,%s) error(%v)", mid, server, key, err)
@@ -62,14 +61,13 @@ func (d *Dao) AddMapping(c context.Context, mid int64, key, server string) (err 
 
 // ExpireMapping expire a mapping.
 func (d *Dao) ExpireMapping(c context.Context, mid int64, key string) (has bool, err error) {
-
 	if mid > 0 {
-		if err = d.redis.Expire(keyMidServer(mid), d.redisExpire).Err(); err != nil {
+		if has, err = d.redis.Expire(keyMidServer(mid), d.redisExpire).Result(); err != nil {
 			g.Logger.Errorf("redis.Send(EXPIRE %d,%s) error(%v)", mid, key, err)
 			return
 		}
 	}
-	if err = d.redis.Expire(keyKeyServer(key), d.redisExpire).Err(); err != nil {
+	if has, err = d.redis.Expire(keyKeyServer(key), d.redisExpire).Result(); err != nil {
 		g.Logger.Errorf("redis.Send(EXPIRE %d,%s) error(%v)", mid, key, err)
 		return
 	}
@@ -78,17 +76,18 @@ func (d *Dao) ExpireMapping(c context.Context, mid int64, key string) (has bool,
 
 // DelMapping del a mapping.
 func (d *Dao) DelMapping(c context.Context, mid int64, key, server string) (has bool, err error) {
-
+	var rows int64
 	if mid > 0 {
-		if err = d.redis.HDel("HDEL", keyMidServer(mid), key).Err(); err != nil {
+		if rows, err = d.redis.HDel("HDEL", keyMidServer(mid), key).Result(); err != nil {
 			g.Logger.Errorf("redis.Send(HDEL %d,%s,%s) error(%v)", mid, key, server, err)
 			return
 		}
 	}
-	if err = d.redis.Del(keyKeyServer(key)).Err(); err != nil {
+	if rows, err = d.redis.Del(keyKeyServer(key)).Result(); err != nil {
 		g.Logger.Errorf("redis.Send(DEL %d,%s,%s) error(%v)", mid, key, server, err)
 		return
 	}
+	has = rows > 0
 	return
 }
 
@@ -126,121 +125,111 @@ func (d *Dao) KeysByMids(c context.Context, mids []int64) (ress map[string]strin
 	return
 }
 
-// AddServerInfo add a server info.
-func (d *Dao) AddServerInfo(c context.Context, server string, res *model.ServerInfo) (err error) {
-	b, _ := json.Marshal(res)
-	if err = d.redis.HSet(_keyServerInfo, server, b).Err(); err != nil {
-		g.Logger.Errorf("redis.Send(HSET %s,%s) error(%v)", _keyServerInfo, server, err)
-		return
-	}
-	if err = d.redis.Expire(_keyServerInfo, d.redisExpire).Err(); err != nil {
-		g.Logger.Errorf("redis.Send(EXPIRE %s) error(%v)", server, err)
-		return
-	}
-	return
-}
-
-// ServerInfos get all servers.
-func (d *Dao) ServerInfos(c context.Context) (res []*model.ServerInfo, err error) {
-	bs, err := d.redis.HVals(_keyServerInfo).Result()
-	if err != nil {
-		g.Logger.Errorf("redis.Do(GET %s) error(%v)", _keyServerInfo, err)
-		return
-	}
-	for _, b := range bs {
-		r := new(model.ServerInfo)
-		if err = json.Unmarshal([]byte(b), r); err != nil {
-			g.Logger.Errorf("serverOnline json.Unmarshal(%s) error(%v)", b, err)
-			return
-		}
-		res = append(res, r)
-	}
-	return
-}
-
-// DelServerInfo del a server online.
-func (d *Dao) DelServerInfo(c context.Context, server string) (err error) {
-	if err = d.redis.HDel(_keyServerInfo, server).Err(); err != nil {
-		g.Logger.Errorf("redis.Do(HDEL %s,%s) error(%v)", _keyServerInfo, server, err)
-	}
-	return
-}
-
-// AddServerOnline add a server online.
-func (d *Dao) AddServerOnline(c context.Context, server string, online *model.Online) (err error) {
-	roomsMap := map[uint32]map[string]int32{}
-	for room, count := range online.RoomCount {
-		rMap := roomsMap[cityhash.CityHash32([]byte(room), uint32(len(room)))%64]
-		if rMap == nil {
-			rMap = make(map[string]int32)
-			roomsMap[cityhash.CityHash32([]byte(room), uint32(len(room)))%64] = rMap
-		}
-		rMap[room] = count
-	}
-	key := keyServerOnline(server)
-	for hashKey, value := range roomsMap {
-		err = d.addServerOnline(c, key, strconv.FormatInt(int64(hashKey), 10), &model.Online{RoomCount: value, Server: online.Server, Updated: online.Updated})
-		if err != nil {
-			return
+//add server info
+func (d *Dao) AddServerScore(c context.Context, server string) (err error) {
+	if _, err = d.redis.ZRank(_keyServers, server).Result(); err == redis.Nil {
+		if err = d.redis.ZAdd(_keyServers, redis.Z{Member: server, Score: 0}).Err(); err != nil {
+			g.Logger.Errorf("redis.Do(ZAdd %s,%s) error(%v)", _keyServers, server, err)
 		}
 	}
 	return
 }
 
-func (d *Dao) addServerOnline(c context.Context, key string, hashKey string, online *model.Online) (err error) {
-	b, _ := json.Marshal(online)
-	if err = d.redis.HSet(key, hashKey, b).Err(); err != nil {
-		g.Logger.Errorf("redis.Send(HSet %s,%s) error(%v)", key, hashKey, err)
+//del server info
+func (d *Dao) DelServerScore(c context.Context, server string) (err error) {
+	var (
+		rooms []string
+	)
+	if err = d.redis.ZRem(_keyServers, server).Err(); err != nil {
+		g.Logger.Errorf("redis.Do(ZRem %s,%s) error(%v)", _keyServers, server, err)
+	}
+	//del RoomCounts
+	if rooms, err = d.redis.SMembers(_keyRooms).Result(); err != nil {
+		g.Logger.Errorf("redis.Do(SMembers %s) error(%v)", _keyRooms, err)
 		return
 	}
-	if err = d.redis.Expire(key, d.redisExpire).Err(); err != nil {
-		g.Logger.Errorf("redis.Send(EXPIRE %s) error(%v)", key, err)
-		return
+	for _, room := range rooms {
+		if err = d.redis.HDel(keyRoomCounts(room), server).Err(); err != nil {
+			g.Logger.Warnf("redis.Send(HDel %s,%s) error(%v)", room, server, err)
+		}
 	}
 	return
 }
 
-// ServerOnline get a server online.
-func (d *Dao) ServerOnline(c context.Context, server string) (online *model.Online, err error) {
-	online = &model.Online{RoomCount: map[string]int32{}}
-	key := keyServerOnline(server)
-	for i := 0; i < 64; i++ {
-		ol, err := d.serverOnline(c, key, strconv.FormatInt(int64(i), 10))
-		if err == nil && ol != nil {
-			online.Server = ol.Server
-			if ol.Updated > online.Updated {
-				online.Updated = ol.Updated
-			}
-			for room, count := range ol.RoomCount {
-				online.RoomCount[room] = count
+//incr server score
+func (d *Dao) IncrServerScore(c context.Context, server string) (err error) {
+	if err = d.redis.ZIncrBy(_keyServers, 1, server).Err(); err != nil {
+		g.Logger.Errorf("redis.Do(ZIncrBy %s,%s) error(%v)", _keyServers, server, err)
+	}
+	return
+}
+
+//decr server score
+func (d *Dao) DecrServerScore(c context.Context, server string) (err error) {
+	if err = d.redis.ZIncrBy(_keyServers, -1, server).Err(); err != nil {
+		g.Logger.Errorf("redis.Do(ZIncrBy %s,%s) error(%v)", _keyServers, server, err)
+	}
+	return
+}
+
+//get server list top
+func (d *Dao) ServersRank(c context.Context, num int64) (list []string, err error) {
+	if list, err = d.redis.ZRange(_keyServers, 0, num).Result(); err != nil {
+		g.Logger.Errorf("redis.Do(ZRange %s) error(%v)", _keyServers, err)
+	}
+	return
+}
+
+func (d *Dao) UpdateRoomCount(c context.Context, server string, roomCount map[string]int32) (err error) {
+	var (
+		rooms []string
+	)
+	for room, count := range roomCount {
+		if err = d.redis.SAdd(_keyRooms, room).Err(); err != nil {
+			g.Logger.Warnf("redis.Send(SAdd %s,%s) error(%v)", room, err)
+		}
+		if err = d.redis.HSet(keyRoomCounts(room), server, count).Err(); err != nil {
+			g.Logger.Warnf("redis.Send(HSet %s,%s) error(%v)", room, server, err)
+		}
+	}
+	// server room count=0 的情况，comet不会传送，需要删除掉当前server的room count
+	if rooms, err = d.redis.SMembers(_keyRooms).Result(); err != nil {
+		g.Logger.Errorf("redis.Do(SMembers %s) error(%v)", _keyRooms, err)
+		return
+	}
+	for _, room := range rooms {
+		if _, ok := roomCount[room]; !ok {
+			if err = d.redis.HDel(keyRoomCounts(room), server).Err(); err != nil {
+				g.Logger.Warnf("redis.Send(HDel %s,%s) error(%v)", room, server, err)
 			}
 		}
 	}
 	return
 }
 
-func (d *Dao) serverOnline(c context.Context, key string, hashKey string) (online *model.Online, err error) {
-	var res string
-	res, err = d.redis.HGet(key, hashKey).Result()
-	if err != nil {
-		if err != redis.Nil {
-			g.Logger.Errorf("redis.Do(HGET %s %s) error(%v)", key, hashKey, err)
-		}
+func (d *Dao) GetAllRoomCount(c context.Context) (allroomCount map[string]int32, err error) {
+	var (
+		rooms    []string
+		vals     []string
+		count    int64
+		allcount int32
+	)
+	if rooms, err = d.redis.SMembers(_keyRooms).Result(); err != nil {
+		g.Logger.Errorf("redis.Do(SMembers %s) error(%v)", _keyRooms, err)
 		return
 	}
-	online = new(model.Online)
-	if err = json.Unmarshal([]byte(res), online); err != nil {
-		g.Logger.Errorf("serverOnline json.Unmarshal(%s) error(%v)", res, err)
-		return
-	}
-	return
-}
 
-// DelServerOnline del a server online.
-func (d *Dao) DelServerOnline(c context.Context, server string) (err error) {
-	key := keyServerOnline(server)
-	if err = d.redis.Del(key).Err(); err != nil {
-		g.Logger.Errorf("redis.Do(DEL %s) error(%v)", key, err)
+	allroomCount = make(map[string]int32, len(rooms))
+
+	for _, room := range rooms {
+		if vals, err = d.redis.HVals(keyRoomCounts(room)).Result(); err != nil {
+			g.Logger.Warnf("redis.Do(HVals %s) error(%v)", room, err)
+		}
+		for _, val := range vals {
+			count, _ = strconv.ParseInt(val, 10, 32)
+			allcount += int32(count)
+		}
+		allroomCount[room] = allcount
 	}
 	return
 }

@@ -47,6 +47,5 @@ func (s *Server) newHTTPServeMux() *http.ServeMux {
 	mux.HandleFunc("/push/all", s.pushAll)
 	mux.HandleFunc("/online/top", s.onlineTop)
 	mux.HandleFunc("/online/room", s.onlineRoom)
-	mux.HandleFunc("/online/total", s.onlineTotal)
 	return mux
 }

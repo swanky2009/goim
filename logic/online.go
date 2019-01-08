@@ -2,53 +2,53 @@ package logic
 
 import (
 	"context"
-	"sort"
 	"strings"
 
-	"github.com/swanky2009/goim/logic/model"
+	"github.com/swanky2009/goim/logic/g"
 )
 
-var (
-	_emptyTops = make([]*model.Top, 0)
-)
-
-// OnlineTop get the top online.
-func (l *Server) OnlineTop(c context.Context, business string, n int) (tops []*model.Top, err error) {
-	for roomKey, cnt := range l.roomCount {
-		if strings.HasPrefix(roomKey, business) {
-			_, roomID, err := model.DecodeRoomKey(roomKey)
-			if err != nil {
-				continue
+// OnlineTop get the top online address.
+func (l *Server) OnlineTop(c context.Context, typeStr string, n int64) (addrs []string, err error) {
+	var (
+		sids    []string
+		servers map[string]string
+	)
+	if sids, err = l.dao.ServersRank(c, n); err != nil {
+		g.Logger.Errorf("ServersRank error(%v)", err)
+		return
+	}
+	//get consul addrs
+	if servers, err = g.GetCometService(); err != nil {
+		g.Logger.Errorf("GetCometService error(%v)", err)
+		return
+	}
+	for _, sid := range sids {
+		if addr, ok := servers[sid]; ok {
+			if typeStr == "tcp" {
+				addr = strings.Replace(addr, ":8009", ":8001", 1)
+			} else {
+				addr = strings.Replace(addr, ":8009", ":8002", 1)
 			}
-			top := &model.Top{
-				RoomID: roomID,
-				Count:  cnt,
-			}
-			tops = append(tops, top)
+			addrs = append(addrs, addr)
 		}
-	}
-	sort.Slice(tops, func(i, j int) bool {
-		return tops[i].Count > tops[j].Count
-	})
-	if len(tops) > n {
-		tops = tops[:n]
-	}
-	if len(tops) == 0 {
-		tops = _emptyTops
 	}
 	return
 }
 
 // OnlineRoom get rooms online.
 func (l *Server) OnlineRoom(c context.Context, rooms []string) (res map[string]int32, err error) {
-	res = make(map[string]int32, len(rooms))
-	for _, roomID := range rooms {
-		res[roomID] = l.roomCount[roomID]
-	}
-	return
-}
 
-// OnlineTotal get all online.
-func (l *Server) OnlineTotal(c context.Context) (int64, int64) {
-	return l.totalIPs, l.totalConns
+	if res, err = l.dao.GetAllRoomCount(c); err != nil {
+		g.Logger.Errorf("GetAllRoomCount error(%v)", err)
+		return
+	}
+	// if len(rooms) > 0 {
+	// 	res = make(map[string]int32, len(rooms))
+	// 	for _, roomID := range rooms {
+	// 		res[roomID] = roomCount[roomID]
+	// 	}
+	// } else {
+	// 	res = roomCount
+	// }
+	return
 }

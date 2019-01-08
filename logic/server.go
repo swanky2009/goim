@@ -5,33 +5,26 @@ import (
 	"time"
 
 	"github.com/swanky2009/goim/logic/dao"
+	"github.com/swanky2009/goim/logic/g"
 	"github.com/swanky2009/goim/logic/g/conf"
 )
 
 const (
-	_onlineTick     = time.Second * 10
-	_onlineDeadline = time.Minute * 5
+	_onlineTick = time.Second * 10
 )
 
 // Logic Server struct
 type Server struct {
 	c   *conf.Config
 	dao *dao.Dao
-	// online
-	totalIPs   int64
-	totalConns int64
-	roomCount  map[string]int32
-	regions    map[string]string // province -> region
 }
 
 // New server
 func NewServer(c *conf.Config) (l *Server) {
 	l = &Server{
-		c:       c,
-		dao:     dao.New(c),
-		regions: make(map[string]string),
+		c:   c,
+		dao: dao.New(c),
 	}
-	//l.initRegions()
 	// l.loadOnline()
 	// go l.onlineproc()
 	return l
@@ -47,41 +40,33 @@ func (l *Server) Close() {
 	l.dao.Close()
 }
 
-func (l *Server) initRegions() {
-	for region, ps := range l.c.Regions {
-		for _, province := range ps {
-			l.regions[province] = region
+func (l *Server) onlineproc() {
+	for {
+		time.Sleep(_onlineTick)
+		if err := l.loadOnline(); err != nil {
+			g.Logger.Errorf("onlineproc error(%v)", err)
 		}
 	}
 }
 
-// func (l *Server) onlineproc() {
-// 	for {
-// 		time.Sleep(_onlineTick)
-// 		if err := l.loadOnline(); err != nil {
-// 			g.Logger.Errorf("onlineproc error(%v)", err)
-// 		}
-// 	}
-// }
-
-// func (l *Server) loadOnline() (err error) {
-// 	var (
-// 		roomCount = make(map[string]int32)
-// 	)
-// 	for _, server := range l.nodes {
-// 		var online *model.Online
-// 		online, err = l.dao.ServerOnline(context.Background(), server.Hostname)
-// 		if err != nil {
-// 			return
-// 		}
-// 		if time.Since(time.Unix(online.Updated, 0)) > _onlineDeadline {
-// 			l.dao.DelServerOnline(context.Background(), server.Hostname)
-// 			continue
-// 		}
-// 		for roomID, count := range online.RoomCount {
-// 			roomCount[roomID] += count
-// 		}
-// 	}
-// 	l.roomCount = roomCount
-// 	return
-// }
+func (l *Server) loadOnline() (err error) {
+	var (
+		sids    []string
+		servers map[string]string
+	)
+	if sids, err = l.dao.ServersRank(context.TODO(), -1); err != nil {
+		g.Logger.Errorf("ServersRank error(%v)", err)
+		return
+	}
+	//get consul addrs
+	if servers, err = g.GetCometService(); err != nil {
+		g.Logger.Errorf("GetCometService error(%v)", err)
+		return
+	}
+	for _, sid := range sids {
+		if _, ok := servers[sid]; !ok {
+			l.dao.DelServerScore(context.TODO(), sid)
+		}
+	}
+	return
+}

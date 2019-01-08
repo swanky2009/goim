@@ -94,25 +94,25 @@ func newLogger() logger {
 	l.Formatter = logFormatter
 
 	//log目录不存在，则创建
-	// _, err := os.Stat(Conf.LogPath)
-	// if err != nil {
-	// 	if os.IsNotExist(err) {
-	// 		os.MkdirAll(Conf.LogPath, os.ModePerm)
-	// 	}
-	// }
+	_, err := os.Stat(Conf.LogPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			os.MkdirAll(Conf.LogPath, os.ModePerm)
+		}
+	}
 
-	// logFile, err := os.OpenFile(
-	// 	Conf.LogPath+"/comet.log",
-	// 	os.O_APPEND|os.O_CREATE|os.O_WRONLY,
-	// 	os.ModePerm,
-	// )
+	logFile, err := os.OpenFile(
+		Conf.LogPath+"/comet.log",
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+		os.ModePerm,
+	)
 
-	// if err != nil {
-	// 	logrus.Fatal("log file create failed.", err)
-	// }
+	if err != nil {
+		logrus.Fatal("log file create failed.", err)
+	}
 
-	//l.Out = logFile
-	l.Out = os.Stdout
+	l.Out = logFile
+	//l.Out = os.Stdout
 
 	if Conf.RunMode == "dev" {
 		l.SetLevel(logrus.DebugLevel)

@@ -27,7 +27,7 @@ Protocol:
 [中文](./README_cn.md)
 
 ## Examples
-Websocket: [Websocket Client Demo](https://github.com/Terry-Mao/goim/tree/master/examples/javascript)
+Websocket: [Websocket Client Demo](https://github.com/swanky2009/goim/tree/master/examples/javascript)
 
 Android: [Android](https://github.com/roamdy/goim-sdk)
 

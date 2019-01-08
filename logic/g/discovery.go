@@ -9,10 +9,14 @@ import (
 
 	consulsd "github.com/go-kit/kit/sd/consul"
 	consulapi "github.com/hashicorp/consul/api"
+	"github.com/swanky2009/goim/pkg/hash"
 	"github.com/swanky2009/goim/pkg/ip"
 )
 
-var ServiceRegistrar *consulsd.Registrar
+var (
+	ServiceRegistrar *consulsd.Registrar
+	ServiceInstancer *consulsd.Instancer
+)
 
 func InstanceDiscovery() error {
 	//创建一个新服务
@@ -64,9 +68,30 @@ func InstanceDiscovery() error {
 	if err != nil {
 		return err
 	}
+
 	client := consulsd.NewClient(consulClient)
 
 	ServiceRegistrar = consulsd.NewRegistrar(client, registration, Logger)
 
+	ServiceInstancer = consulsd.NewInstancer(client, Logger, "goim-comet", []string{""}, true)
+
 	return nil
+}
+
+func GetCometService() (addrs map[string]string, err error) {
+	var (
+		addr string
+	)
+	state := ServiceInstancer.GetState()
+
+	if state.Err != nil {
+		err = state.Err
+		return
+	}
+	addrs = make(map[string]string, len(state.Instances))
+
+	for _, addr = range state.Instances {
+		addrs[hash.Sha1s(addr)] = addr
+	}
+	return
 }

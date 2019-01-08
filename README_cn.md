@@ -1,6 +1,6 @@
 goim v2.0
 ==============
-`Terry-Mao/goim` 是一个支持集群的im及实时推送服务。
+`goim` 是一个支持集群的im及实时推送服务。
 
 ---------------------------------------
   * [特性](#特性)
@@ -22,8 +22,10 @@ goim v2.0
  * 心跳支持（应用心跳和tcp、keepalive）
  * 支持安全验证（未授权用户不能订阅）
  * 多协议支持（websocket，tcp）
- * 可拓扑的架构（job、logic模块可动态无限扩展）
+ * 可拓扑的架构（comet、job、logic模块可动态无限扩展）
+ * 基于Consul服务发现机制
  * 基于Kafka做异步消息推送
+ * 客户端通过API动态获取TCP、Websocket端口，通过实时负载情况推荐最优端口
 
 ## 安装
 ### 一、安装依赖
@@ -57,8 +59,8 @@ $ source /etc/profile
 1.下载goim及依赖包
 ```sh
 $ yum install hg
-$ go get -u github.com/Terry-Mao/goim
-$ mv $GOPATH/src/github.com/Terry-Mao/goim $GOPATH/src/goim
+$ go get -u github.com/swanky2009/goim
+$ mv $GOPATH/src/github.com/swanky2009/goim $GOPATH/src/goim
 $ cd $GOPATH/src/goim
 $ go get ./...
 ```
@@ -104,7 +106,7 @@ TODO
 
 ## 例子
 
-Websocket: [Websocket Client Demo](https://github.com/Terry-Mao/goim/tree/master/examples/javascript)
+Websocket: [Websocket Client Demo](https://github.com/swanky2009/goim/tree/master/examples/javascript)
 
 Android: [Android](https://github.com/roamdy/goim-sdk)
 

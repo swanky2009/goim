@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	pb "github.com/swanky2009/goim/grpc/comet"
 	"github.com/swanky2009/goim/logic/g"
-	"github.com/swanky2009/goim/logic/model"
 	xstr "github.com/swanky2009/goim/pkg/strings"
 )
 
@@ -34,6 +32,10 @@ func (l *Server) Connect(c context.Context, server, serverKey, cookie string, to
 		g.Logger.Errorf("l.dao.AddMapping(%d,%s,%s) error(%v)", mid, key, server, err)
 		return
 	}
+	if err = l.dao.IncrServerScore(c, server); err != nil {
+		g.Logger.Errorf("l.dao.IncrServerScore(%s) error(%v)", server, err)
+		return
+	}
 	g.Logger.Infof("conn connected key:%s server:%s mid:%d token:%s", key, server, mid, token)
 	return
 }
@@ -42,6 +44,10 @@ func (l *Server) Connect(c context.Context, server, serverKey, cookie string, to
 func (l *Server) Disconnect(c context.Context, mid int64, key, server string) (has bool, err error) {
 	if has, err = l.dao.DelMapping(c, mid, key, server); err != nil {
 		g.Logger.Errorf("l.dao.DelMapping(%d,%s) error(%v)", mid, key, server)
+		return
+	}
+	if err = l.dao.DecrServerScore(c, server); err != nil {
+		g.Logger.Errorf("l.dao.DecrServerScore(%s) error(%v)", server, err)
 		return
 	}
 	g.Logger.Infof("conn disconnected key:%s server:%s mid:%d", key, server, mid)
@@ -65,36 +71,25 @@ func (l *Server) Heartbeat(c context.Context, mid int64, key, server string) (er
 	return
 }
 
-// RenewServer renew a server info.
-func (l *Server) RenewServer(c context.Context, server string, ipAddrs []string, ipCount, connCount int32, shutdown bool) (err error) {
-	if shutdown {
-		l.dao.DelServerInfo(c, server)
-		return
-	}
-	serverInfo := &model.ServerInfo{
-		Server:    server,
-		IPAddrs:   ipAddrs,
-		IPCount:   ipCount,
-		ConnCount: connCount,
-		Updated:   time.Now().Unix(),
-	}
-	if err = l.dao.AddServerInfo(c, server, serverInfo); err != nil {
-		return
-	}
-	return
-}
-
 // RenewOnline renew a server online.
 func (l *Server) RenewOnline(c context.Context, server string, roomCount map[string]int32) (allRoomCount map[string]int32, err error) {
-	online := &model.Online{
-		Server:    server,
-		RoomCount: roomCount,
-		Updated:   time.Now().Unix(),
-	}
-	if err = l.dao.AddServerOnline(context.Background(), server, online); err != nil {
+
+	if err = l.dao.UpdateRoomCount(c, server, roomCount); err != nil {
+		g.Logger.Errorf("l.dao.UpdateRoomCount(%s) error(%v)", server, err)
 		return
 	}
-	return l.roomCount, nil
+
+	g.Logger.Debugf("RenewOnline server:%s roomCount(%v)", server, roomCount)
+
+	if err = l.dao.AddServerScore(c, server); err != nil {
+		g.Logger.Errorf("l.dao.AddServerScore(%s) error(%v)", server, err)
+		return
+	}
+	allRoomCount, err = l.dao.GetAllRoomCount(c)
+
+	g.Logger.Debugf("RenewOnline server:%s allRoomCount(%v)", server, allRoomCount)
+
+	return
 }
 
 // Receive receive a message.
@@ -103,7 +98,7 @@ func (l *Server) Receive(c context.Context, mid int64, room string, op int32, ms
 	g.Logger.Debugf("conn receive a message mid:%d room:%s msg:%s", mid, room, string(msg))
 
 	if op == pb.OpSendMsg {
-		err = l.PushRoom(context.TODO(), pb.OpSendMsgReply, room, msg)
+		err = l.PushRoom(c, pb.OpSendMsgReply, room, msg)
 		if err != nil {
 			g.Logger.Warningf("push room mid:%d room:%s error(%v)", mid, room, err)
 		}

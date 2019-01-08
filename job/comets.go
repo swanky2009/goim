@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	syncCometServersDelay = 10 * time.Minute
+	syncCometServersDelay = 1 * time.Minute
 	syncRoomServersDelay  = 1 * time.Second
 )
 
@@ -36,6 +36,8 @@ func InitComets(c *conf.Comet) *Comets {
 		serverId := hash.Sha1s(addr)
 
 		comets.cometServiceMap[serverId] = NewComet(c, addr)
+
+		g.MetricsStat.IncrCometNodes()
 
 		g.Logger.Infof("init comet serverId: %s rpc: %s", serverId, addr)
 	}
@@ -67,6 +69,8 @@ func (this *Comets) SyncComets(c *conf.Comet) {
 
 				this.cometServiceMap[serverId] = NewComet(c, addr)
 
+				g.MetricsStat.IncrCometNodes()
+
 				g.Logger.Infof("init new comet  serverId: %s rpc: %s", serverId, addr)
 			}
 			servers[serverId] = addr
@@ -75,6 +79,10 @@ func (this *Comets) SyncComets(c *conf.Comet) {
 			if _, ok := servers[serverId]; !ok {
 				comet.Close()
 				delete(this.cometServiceMap, serverId)
+
+				g.MetricsStat.DecrCometNodes()
+
+				g.Logger.Infof("remove comet  serverId: %s", serverId)
 			}
 		}
 		time.Sleep(syncCometServersDelay)
@@ -90,10 +98,10 @@ func (this *Comets) Push(serverId string, args *pb.PushMsgReq) {
 
 			g.Logger.Errorf("c.Push(%v) serverId:%s error(%v)", args, serverId, err)
 
-			//MetricsStat.IncrPushMsgFailed()
+			g.MetricsStat.IncrPushMsgFailed()
 		}
 	}
-	//g.MetricsStat.IncrPushMsg()
+	g.MetricsStat.IncrPushMsg()
 }
 
 // broadcast a message to all
@@ -105,10 +113,10 @@ func (this *Comets) Broadcast(args *pb.BroadcastReq) {
 
 			g.Logger.Errorf("c.Broadcast(%v) serverId:%d error(%v)", args, serverId, err)
 
-			//MetricsStat.IncrBroadcastMsgFailed()
+			g.MetricsStat.IncrBroadcastMsgFailed()
 		}
 	}
-	//g.MetricsStat.IncrBroadcastMsg()
+	g.MetricsStat.IncrBroadcastMsg()
 }
 
 // broadcast aggregation messages to room
@@ -132,12 +140,12 @@ func (this *Comets) BroadcastRoom(roomId string, args *pb.BroadcastRoomReq) {
 
 					g.Logger.Errorf("c.BroadcastRoom(%v) roomId:%s error(%v)", args, roomId, err)
 
-					//MetricsStat.IncrBroadcastRoomMsgFailed()
+					g.MetricsStat.IncrBroadcastRoomMsgFailed()
 				}
 			}
 		}
 	}
-	//g.MetricsStat.IncrBroadcastRoomMsg()
+	g.MetricsStat.IncrBroadcastRoomMsg()
 }
 
 func (this *Comets) MergeRoomServers() {
@@ -177,6 +185,8 @@ func (this *Comets) MergeRoomServers() {
 		}
 	}
 	this.roomServersMap = roomServers
+	// set active rooms count
+	g.MetricsStat.SetActiveRoomCount(float64(len(roomServers)))
 }
 
 func (this *Comets) SyncRoomServers() {
@@ -190,5 +200,6 @@ func (this *Comets) SyncRoomServers() {
 func (this *Comets) Close() {
 	for _, c := range this.cometServiceMap {
 		c.Close()
+		g.MetricsStat.DecrCometNodes()
 	}
 }
