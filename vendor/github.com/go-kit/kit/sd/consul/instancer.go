@@ -172,6 +172,19 @@ func makeInstances(entries []*consul.ServiceEntry) []string {
 	return instances
 }
 
-func (s *Instancer) GetState() sd.Event {
+func (s *Instancer) GetServiceState() sd.Event {
 	return s.cache.State()
+}
+
+func (s *Instancer) GetServiceEntrys() (entries []*consul.ServiceEntry, err error) {
+	tag := ""
+	if len(s.tags) > 0 {
+		tag = s.tags[0]
+	}
+	entries, _, err = s.client.Service(s.service, tag, s.passingOnly, &consul.QueryOptions{})
+
+	if len(s.tags) > 1 {
+		entries = filterEntries(entries, s.tags[1:]...)
+	}
+	return
 }

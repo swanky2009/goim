@@ -82,7 +82,7 @@ func GetCometService() (addrs map[string]string, err error) {
 	var (
 		addr string
 	)
-	state := ServiceInstancer.GetState()
+	state := ServiceInstancer.GetServiceState()
 
 	if state.Err != nil {
 		err = state.Err
@@ -95,3 +95,20 @@ func GetCometService() (addrs map[string]string, err error) {
 	}
 	return
 }
+
+// func GetCometService2() (addrs map[string]string, err error) {
+// 	var (
+// 		addr string
+// 	)
+// 	entries, err := ServiceInstancer.GetServiceEntrys()
+
+// 	if err != nil {
+// 		return
+// 	}
+// 	addrs = make(map[string]string, len(state.Instances))
+
+// 	for _, addr = range entries {
+// 		addrs[hash.Sha1s(addr)] = addr
+// 	}
+// 	return
+// }
