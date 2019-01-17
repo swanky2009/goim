@@ -12,3 +12,9 @@ type Top struct {
 	RoomID string `json:"room_id"`
 	Count  int32  `json:"count"`
 }
+
+type CometInfo struct {
+	Addr string
+	TCP  []string
+	WS   []string
+}

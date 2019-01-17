@@ -96,19 +96,22 @@ func GetCometService() (addrs map[string]string, err error) {
 	return
 }
 
-// func GetCometService2() (addrs map[string]string, err error) {
-// 	var (
-// 		addr string
-// 	)
-// 	entries, err := ServiceInstancer.GetServiceEntrys()
+func GetCometServiceMetas() (metas map[string]map[string]string, err error) {
+	var (
+		entry   *consulapi.ServiceEntry
+		entries []*consulapi.ServiceEntry
+		addr    string
+	)
+	entries, err = ServiceInstancer.GetServiceEntrys()
 
-// 	if err != nil {
-// 		return
-// 	}
-// 	addrs = make(map[string]string, len(state.Instances))
+	if err != nil {
+		return
+	}
+	metas = make(map[string]map[string]string, len(entries))
 
-// 	for _, addr = range entries {
-// 		addrs[hash.Sha1s(addr)] = addr
-// 	}
-// 	return
-// }
+	for _, entry = range entries {
+		addr = fmt.Sprintf("%s:%d", entry.Service.Address, entry.Service.Port)
+		metas[hash.Sha1s(addr)] = entry.Node.Meta
+	}
+	return
+}

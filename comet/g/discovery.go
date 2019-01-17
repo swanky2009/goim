@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 
 	consulsd "github.com/go-kit/kit/sd/consul"
@@ -19,6 +20,18 @@ var ServiceResolver naming.Resolver
 //var peo People = &Stduent{}
 
 func InstanceDiscovery() error {
+	var (
+		meta       map[string]string
+		tcpbinds   []string
+		wsbinds    []string
+		wstlsbinds []string
+		local      string
+		bind       string
+		bhost      string
+		bport      string
+	)
+	meta = make(map[string]string, 3)
+	local = ip.InternalIP()
 	//创建一个新服务
 	host, port, err := net.SplitHostPort(Conf.RPCServer.Addr)
 	if err != nil {
@@ -29,7 +42,35 @@ func InstanceDiscovery() error {
 		return errors.New("rpc server addr error")
 	}
 	if host == "" {
-		host = ip.InternalIP()
+		host = local
+	}
+	for _, bind = range Conf.TCP.Bind {
+		bhost, bport, _ = net.SplitHostPort(bind)
+		if bhost == "" {
+			bhost = local
+		}
+		tcpbinds = append(tcpbinds, net.JoinHostPort(bhost, bport))
+	}
+	meta["tcp"] = strings.Join(tcpbinds, ",")
+
+	for _, bind = range Conf.WebSocket.Bind {
+		bhost, bport, _ = net.SplitHostPort(bind)
+		if bhost == "" {
+			bhost = local
+		}
+		wsbinds = append(wsbinds, net.JoinHostPort(bhost, bport))
+	}
+	meta["ws"] = strings.Join(wsbinds, ",")
+
+	if Conf.WebSocket.TLSOpen {
+		for _, bind = range Conf.WebSocket.TLSBind {
+			bhost, bport, _ = net.SplitHostPort(bind)
+			if bhost == "" {
+				bhost = local
+			}
+			wstlsbinds = append(wstlsbinds, net.JoinHostPort(bhost, bport))
+		}
+		meta["wstls"] = strings.Join(wstlsbinds, ",")
 	}
 	registration := &consulapi.AgentServiceRegistration{
 		Kind:    consulapi.ServiceKindTypical,
@@ -38,6 +79,7 @@ func InstanceDiscovery() error {
 		Port:    portInt,
 		Tags:    []string{"v1"},
 		Address: host,
+		Meta:    meta,
 	}
 
 	//增加check consul 0.7以上版本才支持 grpc health check

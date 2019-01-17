@@ -10,26 +10,39 @@ import (
 // OnlineTop get the top online address.
 func (l *Server) OnlineTop(c context.Context, typeStr string, n int64) (addrs []string, err error) {
 	var (
-		sids    []string
-		servers map[string]string
+		sids  []string
+		metas map[string]map[string]string
+		binds string
+		ports []string
+		addr  string
 	)
 	if sids, err = l.dao.ServersRank(c, n); err != nil {
 		g.Logger.Errorf("ServersRank error(%v)", err)
 		return
 	}
-	//get consul addrs
-	if servers, err = g.GetCometService(); err != nil {
+	//get consul metas
+	if metas, err = g.GetCometServiceMetas(); err != nil {
 		g.Logger.Errorf("GetCometService error(%v)", err)
 		return
 	}
+
+	g.Logger.Debugf("GetCometServiceMetas (%v)", metas)
+
 	for _, sid := range sids {
-		if addr, ok := servers[sid]; ok {
+		if meta, ok := metas[sid]; ok {
 			if typeStr == "tcp" {
-				addr = strings.Replace(addr, ":8009", ":8001", 1)
-			} else {
-				addr = strings.Replace(addr, ":8009", ":8002", 1)
+				binds = meta["tcp"]
+			} else if typeStr == "ws" {
+				binds = meta["ws"]
+			} else if typeStr == "wstls" {
+				binds = meta["wstls"]
 			}
-			addrs = append(addrs, addr)
+			ports = strings.Split(binds, ",")
+			for _, addr = range ports {
+				if len(addr) > 0 {
+					addrs = append(addrs, addr)
+				}
+			}
 		}
 	}
 	return
