@@ -2,4 +2,4 @@
 
 set
 
-/go/src/bookinfo/bookcomments-service/cmd/bookcomments-server/bookcomments-server
+/go/src/goim/comet/cmd/goim-comet

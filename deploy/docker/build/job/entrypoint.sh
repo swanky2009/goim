@@ -2,4 +2,4 @@
 
 set
 
-/go/src/bookinfo/bookdetails-service/cmd/bookdetails-server/bookdetails-server
+/go/src/goim/job/cmd/goim-job

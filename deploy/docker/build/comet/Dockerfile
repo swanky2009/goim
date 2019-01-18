@@ -1,11 +1,11 @@
 FROM gxlz/golang:1.10.3-apline3.7
 
-COPY bookinfo /go/src/bookinfo
-COPY bookinfo/deploy/docker/build/comments/entrypoint.sh /
+COPY goim /go/src/goim
+COPY goim/deploy/docker/build/comet/entrypoint.sh /
 RUN chmod +x /entrypoint.sh && \
-    cd /go/src/bookinfo/bookcomments-service/cmd/bookcomments-server && \
+    cd /go/src/goim/comet/cmd && \
     go build
 
-EXPOSE 5001 5002 5003 5004
+EXPOSE 8001 8002 8003 8005 8009
 
 ENTRYPOINT "/entrypoint.sh"
