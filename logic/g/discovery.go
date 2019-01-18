@@ -111,7 +111,7 @@ func GetCometServiceMetas() (metas map[string]map[string]string, err error) {
 
 	for _, entry = range entries {
 		addr = fmt.Sprintf("%s:%d", entry.Service.Address, entry.Service.Port)
-		metas[hash.Sha1s(addr)] = entry.Node.Meta
+		metas[hash.Sha1s(addr)] = entry.Service.Meta
 	}
 	return
 }
