@@ -6,11 +6,15 @@ package main
 // third parameter: comet server ip
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	mrand "math/rand"
 	"net"
+	"net/http"
 	"os"
 	"runtime"
 	"strconv"
@@ -19,7 +23,6 @@ import (
 
 	grpc "github.com/swanky2009/goim/grpc/comet"
 	"github.com/swanky2009/goim/pkg/bufio"
-	log "github.com/thinkboy/log4go"
 )
 
 const (
@@ -48,13 +51,17 @@ const (
 
 var (
 	countDown int64
+	rpcserver string
 )
+
+type ServerBody struct {
+	Code int      `json:"code"`
+	Data []string `json:"data"`
+}
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	log.Global = log.NewDefaultLogger(log.DEBUG)
 	flag.Parse()
-	defer log.Close()
 	begin, err := strconv.Atoi(os.Args[1])
 	if err != nil {
 		panic(err)
@@ -64,6 +71,32 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	url := fmt.Sprintf("http://%s/online/top?type=tcp", os.Args[3])
+
+	body, err := httpGet(url)
+	if err != nil {
+		panic(err)
+		return
+	}
+
+	log.Print(string(body))
+
+	var servers ServerBody
+
+	err = json.Unmarshal(body, &servers)
+	if err != nil {
+		panic(err)
+		return
+	}
+	log.Print(servers)
+
+	if len(servers.Data) == 0 {
+		log.Println("no comet server")
+		return
+	}
+
+	rpcserver = servers.Data[0]
 
 	go result()
 
@@ -105,9 +138,9 @@ func startClient(key string) {
 
 	quit := make(chan bool, 1)
 
-	conn, err := net.Dial("tcp", os.Args[3])
+	conn, err := net.Dial("tcp", rpcserver)
 	if err != nil {
-		log.Error("net.Dial(\"%s\") error(%v)", os.Args[3], err)
+		log.Printf("net.Dial(\"%s\") error(%v)", rpcserver, err)
 		return
 	}
 	conn.SetReadDeadline(time.Now().Add(heart + 60*time.Second))
@@ -128,11 +161,11 @@ func startClient(key string) {
 	proto.Body = []byte(body)
 
 	if err = proto.WriteTCP(wr); err != nil {
-		log.Error("WriteTCP Auth error(%v)", err)
+		log.Printf("WriteTCP Auth error(%v)", err)
 		return
 	}
 	if err = wr.Flush(); err != nil {
-		log.Error("WriteTCP Auth error(%v)", err)
+		log.Printf("WriteTCP Auth error(%v)", err)
 		return
 	}
 
@@ -150,33 +183,33 @@ func startClient(key string) {
 		proto2.Body = []byte("hello,everyone! I am " + mid)
 
 		ticker := time.NewTicker(heart)
-		//ticker_msg := time.NewTicker(msg)
+		ticker_msg := time.NewTicker(msg)
 		for {
 			select {
 			case <-ticker.C:
 				proto1.Seq = seqId
 				if err = proto1.WriteTCPHeart(wr, roomid); err != nil {
-					log.Error("key:%s WriteTCPHeart() error(%v)", key, err)
+					log.Printf("key:%s WriteTCPHeart() error(%v)", key, err)
 					return
 				}
 				if err = wr.Flush(); err != nil {
-					log.Error("key:%s WriteTCPHeart() error(%v)", key, err)
+					log.Printf("key:%s WriteTCPHeart() error(%v)", key, err)
 					return
 				}
-				log.Debug("key:%s Write heartbeat", key)
+				log.Printf("key:%s Write heartbeat", key)
 				seqId++
-			// case <-ticker_msg.C:
-			// 	proto2.Seq = seqId
-			// 	if err = proto2.WriteTCP(wr); err != nil {
-			// 		log.Error("key:%s WriteTCP() error(%v)", key, err)
-			// 		return
-			// 	}
-			// 	if err = wr.Flush(); err != nil {
-			// 		log.Error("key:%s WriteTCP() error(%v)", key, err)
-			// 		return
-			// 	}
-			// 	log.Debug("key:%s Write send msg(%v)", key, proto2)
-			// 	seqId++
+			case <-ticker_msg.C:
+				proto2.Seq = seqId
+				if err = proto2.WriteTCP(wr); err != nil {
+					log.Printf("key:%s WriteTCP() error(%v)", key, err)
+					return
+				}
+				if err = wr.Flush(); err != nil {
+					log.Printf("key:%s WriteTCP() error(%v)", key, err)
+					return
+				}
+				log.Printf("key:%s Write send msg(%v)", key, proto2)
+				seqId++
 			default:
 				time.Sleep(500 * time.Millisecond)
 			}
@@ -191,30 +224,30 @@ func startClient(key string) {
 					time.Sleep(200 * time.Millisecond)
 					continue
 				}
-				log.Error("key:%s tcpReadProto error(%v)", key, err)
+				log.Printf("key:%s tcpReadProto error(%v)", key, err)
 				quit <- true
 				return
 			}
 
-			log.Debug("key:%s proto Operation: %d", key, proto.Op)
+			log.Printf("key:%s proto Operation: %d", key, proto.Op)
 
 			if proto.Op == OP_AUTH_REPLY {
-				log.Debug("key:%s auth ok, proto: %v", key, proto)
+				log.Printf("key:%s auth ok, proto: %v", key, proto)
 			} else if proto.Op == OP_HEARTBEAT_REPLY {
-				log.Debug("key:%s receive heartbeat", key)
+				log.Printf("key:%s receive heartbeat", key)
 				if err = conn.SetReadDeadline(time.Now().Add(heart + 60*time.Second)); err != nil {
-					log.Error("conn.SetReadDeadline() error(%v)", err)
+					log.Printf("conn.SetReadDeadline() error(%v)", err)
 					quit <- true
 					return
 				}
 			} else if proto.Op == OP_TEST_REPLY {
-				log.Debug("key:%s reply msg: %s", key, string(proto.Body))
+				log.Printf("key:%s reply msg: %s", key, string(proto.Body))
 				atomic.AddInt64(&countDown, 1)
 			} else if proto.Op == OP_SEND_SMS_REPLY {
-				log.Debug("key:%s reply msg: %s", key, string(proto.Body))
+				log.Printf("key:%s reply msg: %s", key, string(proto.Body))
 				atomic.AddInt64(&countDown, 1)
 				if err = conn.SetReadDeadline(time.Now().Add(heart + 60*time.Second)); err != nil {
-					log.Error("conn.SetReadDeadline() error(%v)", err)
+					log.Printf("conn.SetReadDeadline() error(%v)", err)
 					quit <- true
 					return
 				}
@@ -224,4 +257,14 @@ func startClient(key string) {
 	}()
 
 	<-quit
+}
+
+func httpGet(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
 }

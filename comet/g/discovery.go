@@ -79,7 +79,7 @@ func InstanceDiscovery() error {
 		Port:    portInt,
 		Tags:    []string{"v1"},
 		Address: host,
-		Meta:    meta,
+		Meta:    meta, //consul 低版本不支持Meta
 	}
 
 	//增加check consul 0.7以上版本才支持 grpc health check

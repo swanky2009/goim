@@ -24,26 +24,269 @@
       "colorBackground": false,
       "colorValue": false,
       "colors": [
+        "#890f02",
+        "rgba(237, 129, 40, 0.89)",
+        "#299c46"
+      ],
+      "datasource": "Prometheus",
+      "format": "none",
+      "gauge": {
+        "maxValue": 2000,
+        "minValue": 0,
+        "show": true,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "hideTimeOverride": true,
+      "id": 10,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "go_goroutines{job=\"goim-comet\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "goim_comet_goroutines",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
         "#d44a3a",
         "rgba(237, 129, 40, 0.89)",
         "#299c46"
       ],
+      "format": "none",
+      "gauge": {
+        "maxValue": 1000,
+        "minValue": 0,
+        "show": true,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "id": 16,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "go_goroutines{job=\"goim-logic\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "title": "goim_logic_goroutines",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "avg"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#d44a3a",
+        "rgba(237, 129, 40, 0.89)",
+        "#299c46"
+      ],
+      "format": "none",
+      "gauge": {
+        "maxValue": 1000,
+        "minValue": 0,
+        "show": true,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "id": 18,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "go_goroutines{job=\"goim-job\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "title": "goim_job_goroutines",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "avg"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#d44a3a",
+        "rgba(237, 129, 40, 0.89)",
+        "#299c46"
+      ],
+      "datasource": "Prometheus",
       "decimals": null,
       "description": "pepole of online number",
       "format": "none",
       "gauge": {
-        "maxValue": 100,
+        "maxValue": 10000,
         "minValue": 0,
         "show": true,
         "thresholdLabels": false,
-        "thresholdMarkers": false
+        "thresholdMarkers": true
       },
       "gridPos": {
         "h": 4,
-        "w": 7,
-        "x": 0,
+        "w": 4,
+        "x": 12,
         "y": 0
       },
+      "hideTimeOverride": true,
       "id": 6,
       "interval": null,
       "links": [],
@@ -82,8 +325,9 @@
       "tableColumn": "__name__",
       "targets": [
         {
-          "expr": "goim_comet_online",
+          "expr": "goim_comet_online{job=\"goim-comet\"}",
           "format": "heatmap",
+          "hide": false,
           "instant": false,
           "interval": "",
           "intervalFactor": 2,
@@ -92,7 +336,9 @@
         }
       ],
       "thresholds": "",
-      "title": "GOIM Online",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "goim_comet_online",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -109,14 +355,15 @@
       "colorBackground": false,
       "colorValue": false,
       "colors": [
-        "#052b51",
+        "#d44a3a",
         "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#508642"
       ],
+      "datasource": "Prometheus",
       "description": "",
       "format": "none",
       "gauge": {
-        "maxValue": 100,
+        "maxValue": 10000,
         "minValue": 0,
         "show": true,
         "thresholdLabels": false,
@@ -124,10 +371,11 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 9,
-        "x": 7,
+        "w": 4,
+        "x": 16,
         "y": 0
       },
+      "hideTimeOverride": true,
       "id": 4,
       "interval": null,
       "links": [],
@@ -175,8 +423,9 @@
         }
       ],
       "thresholds": "",
+      "timeFrom": null,
       "timeShift": null,
-      "title": "GOIM TCP Online",
+      "title": "goim_comet_tcponline",
       "transparent": false,
       "type": "singlestat",
       "valueFontSize": "80%",
@@ -194,13 +443,14 @@
       "colorBackground": false,
       "colorValue": false,
       "colors": [
-        "#299c46",
+        "#d44a3a",
         "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
+        "#299c46"
       ],
+      "datasource": "Prometheus",
       "format": "none",
       "gauge": {
-        "maxValue": 100,
+        "maxValue": 10000,
         "minValue": 0,
         "show": true,
         "thresholdLabels": false,
@@ -208,10 +458,11 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 8,
-        "x": 16,
+        "w": 4,
+        "x": 20,
         "y": 0
       },
+      "hideTimeOverride": true,
       "id": 8,
       "interval": null,
       "links": [],
@@ -249,14 +500,16 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "goim_comet_wsonline",
+          "expr": "goim_comet_wsonline{job=\"goim-comet\"}",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
         }
       ],
       "thresholds": "",
-      "title": "GOIM Websocket Online",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "goim_comet_wsonline",
       "type": "singlestat",
       "valueFontSize": "80%",
       "valueMaps": [
@@ -273,14 +526,361 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "fill": 1,
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 4
+      },
+      "id": 28,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "go_memstats_alloc_bytes_total{job=\"goim-comet\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "Total number of bytes allocated, even if freed.",
+          "refId": "A"
+        },
+        {
+          "expr": "go_memstats_frees_total{job=\"goim-comet\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "Total number of frees.",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "goim_comet_memstats",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "fill": 1,
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 4
+      },
+      "id": 26,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "scrape_duration_seconds{job=\"goim-comet\",instance=\"109.10.21.217:8005\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "comet",
+          "refId": "A"
+        },
+        {
+          "expr": "scrape_duration_seconds{job=\"goim-logic\",instance=\"109.10.21.217:8015\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "logic",
+          "refId": "B"
+        },
+        {
+          "expr": "scrape_duration_seconds{job=\"goim-job\",instance=\"109.10.21.217:8025\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "job",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "goim_scrape_duration",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#d44a3a",
+        "rgba(237, 129, 40, 0.89)",
+        "#299c46"
+      ],
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": true,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 4
+      },
+      "id": 20,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "goim_job_cometnodes{job=\"goim-job\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "title": "goim_job_cometnodes",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "avg"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorValue": false,
+      "colors": [
+        "#d44a3a",
+        "rgba(237, 129, 40, 0.89)",
+        "#299c46"
+      ],
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": true,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 4
+      },
+      "id": 22,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "goim_job_activeroomcount{job=\"goim-job\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "title": "goim_job_activeroomcount",
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "avg"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
       "datasource": "Prometheus",
       "decimals": null,
       "fill": 1,
       "gridPos": {
-        "h": 9,
-        "w": 24,
+        "h": 7,
+        "w": 12,
         "x": 0,
-        "y": 4
+        "y": 8
       },
       "hideTimeOverride": false,
       "id": 2,
@@ -310,31 +910,35 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "goim_comet_allmsg ",
+          "expr": "goim_comet_allmsg{job=\"goim-comet\"}",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
+          "legendFormat": "comet_allmsg",
           "refId": "A"
         },
         {
-          "expr": "goim_comet_broadcastmsg ",
+          "expr": " goim_comet_pushmsg{job=\"goim-comet\"}",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
+          "legendFormat": "pushmsg",
           "refId": "B"
         },
         {
-          "expr": "goim_comet_broadcastroommsg",
+          "expr": "goim_comet_broadcastroommsg{job=\"goim-comet\"}",
           "format": "time_series",
           "hide": false,
           "instant": false,
           "intervalFactor": 1,
+          "legendFormat": "broadcastroommsg",
           "refId": "C"
         },
         {
-          "expr": "goim_comet_pushmsg",
+          "expr": "goim_comet_broadcastmsg{job=\"goim-comet\"}",
           "format": "time_series",
           "intervalFactor": 1,
+          "legendFormat": "broadcastmsg",
           "refId": "D"
         }
       ],
@@ -342,13 +946,120 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "goim-msg",
+      "title": "goim_comet_msg_count",
       "tooltip": {
         "shared": true,
         "sort": 0,
         "value_type": "individual"
       },
       "transparent": false,
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "fill": 1,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 14,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "repeat": null,
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "goim_job_allmsg",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "allmsg",
+          "refId": "A"
+        },
+        {
+          "expr": "goim_job_pushmsg",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "pushmsg",
+          "refId": "B"
+        },
+        {
+          "expr": "goim_job_broadcastroommsg",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "broadcastroommsg",
+          "refId": "C"
+        },
+        {
+          "expr": "goim_job_broadcastmsg",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "broadcastmsg",
+          "refId": "D"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "goim_job_msg_count",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
       "type": "graph",
       "xaxis": {
         "buckets": null,
@@ -417,5 +1128,5 @@
   "timezone": "",
   "title": "goim-dashboard",
   "uid": "sr4Hobsmk",
-  "version": 31
+  "version": 102
 }
