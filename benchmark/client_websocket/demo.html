@@ -1,0 +1,27 @@
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>websocket client demo</title>
+    <script type="text/javascript" charset="utf-8" src="https://cdn.staticfile.org/jquery/3.3.1/jquery.min.js" async defer></script>
+  </head>
+  <body>
+    <h1>websocket client demo</h1>
+    <script src="client.js"></script>
+    <script>
+      var client = new MyClient({
+        notify: function(data) {
+		      console.log(data);
+          $("#msg_ul").append("<li>"+JSON.stringify(data)+"</li>")
+          if($("#msg_ul").children().length > 20)
+          {
+            $("#msg_ul li:first").remove()
+          }
+        }
+      });
+    </script>    
+    <ul id="msg_ul">      
+    </ul>
+  </body>
+</html>
