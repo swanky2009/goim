@@ -51,7 +51,7 @@ bucket:
 metrics_server:
   addr: :8005
 discovery:
-  addr: 109.254.2.159:8500
+  addr: 109.254.2.139:8500
 zipkin:
   url: http://109.254.2.159:9411
   service_name: goim-comet

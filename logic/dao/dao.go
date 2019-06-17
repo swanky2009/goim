@@ -11,9 +11,10 @@ import (
 
 // Dao dao.
 type Dao struct {
-	c           *conf.Config
-	kafkaPub    kafka.SyncProducer
-	redis       *redis.ClusterClient
+	c        *conf.Config
+	kafkaPub kafka.SyncProducer
+	redis    *redis.ClusterClient
+	// redis       *redis.Client
 	redisExpire time.Duration
 }
 
@@ -43,7 +44,9 @@ func newKafkaPub(c *conf.Kafka) kafka.SyncProducer {
 
 func newRedis(c *conf.Redis) *redis.ClusterClient {
 	redisdb := redis.NewClusterClient(
+		// redisdb := redis.NewClient(
 		&redis.ClusterOptions{
+			// &redis.Options{
 			Addrs:        c.Addrs,
 			DialTimeout:  time.Duration(c.DialTimeout),
 			ReadTimeout:  time.Duration(c.ReadTimeout),

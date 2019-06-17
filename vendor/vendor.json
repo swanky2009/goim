@@ -147,6 +147,24 @@
 			"revisionTime": "2018-11-10T14:46:32Z"
 		},
 		{
+			"checksumSHA1": "lpY1B/DbAUwhfO41QIfWjlp08Ig=",
+			"path": "github.com/afex/hystrix-go/hystrix",
+			"revision": "fa1af6a1f4f56e0e50d427fe901cd604d8c6fb8a",
+			"revisionTime": "2018-05-02T00:45:56Z"
+		},
+		{
+			"checksumSHA1": "+xellyeZ+r6kCejQ4e7PHCUcHTg=",
+			"path": "github.com/afex/hystrix-go/hystrix/metric_collector",
+			"revision": "fa1af6a1f4f56e0e50d427fe901cd604d8c6fb8a",
+			"revisionTime": "2018-05-02T00:45:56Z"
+		},
+		{
+			"checksumSHA1": "G+UVDKfmO+mYXiWChE8Pw7fnmEQ=",
+			"path": "github.com/afex/hystrix-go/hystrix/rolling",
+			"revision": "fa1af6a1f4f56e0e50d427fe901cd604d8c6fb8a",
+			"revisionTime": "2018-05-02T00:45:56Z"
+		},
+		{
 			"checksumSHA1": "drpRPs82SbbV6FBNxoGVGpjEe/Q=",
 			"path": "github.com/beorn7/perks/quantile",
 			"revision": "3a771d992973f24aa725d07868b467d1ddfceafb",
@@ -183,6 +201,12 @@
 			"revisionTime": "2018-02-27T14:14:24Z"
 		},
 		{
+			"checksumSHA1": "RKhdztuRCg4W5SqLnW2GlNKHj3k=",
+			"path": "github.com/go-kit/kit/circuitbreaker",
+			"revision": "9fd144b1f3aa7775dfdb90084215a6555e9f163d",
+			"revisionTime": "2018-10-31T16:38:24Z"
+		},
+		{
 			"checksumSHA1": "mI7gNSGPMvHA16ykClbR2Zn1ofw=",
 			"path": "github.com/go-kit/kit/endpoint",
 			"revision": "9fd144b1f3aa7775dfdb90084215a6555e9f163d",
@@ -213,6 +237,12 @@
 			"revisionTime": "2018-10-31T16:38:24Z"
 		},
 		{
+			"checksumSHA1": "As9SfsbmHDfMzuBnIVv635yxxqE=",
+			"path": "github.com/go-kit/kit/ratelimit",
+			"revision": "9fd144b1f3aa7775dfdb90084215a6555e9f163d",
+			"revisionTime": "2018-10-31T16:38:24Z"
+		},
+		{
 			"checksumSHA1": "2wM16yHGi8plz4y/2tdOLysgxhk=",
 			"path": "github.com/go-kit/kit/sd",
 			"revision": "9fd144b1f3aa7775dfdb90084215a6555e9f163d",
@@ -227,6 +257,12 @@
 		{
 			"checksumSHA1": "HCAbwBnyYtztR7pe2hrFuzuU3ew=",
 			"path": "github.com/go-kit/kit/sd/internal/instance",
+			"revision": "9fd144b1f3aa7775dfdb90084215a6555e9f163d",
+			"revisionTime": "2018-10-31T16:38:24Z"
+		},
+		{
+			"checksumSHA1": "o4MEvxEFVZCcr5p0wX6dTlhJxcY=",
+			"path": "github.com/go-kit/kit/transport/grpc",
 			"revision": "9fd144b1f3aa7775dfdb90084215a6555e9f163d",
 			"revisionTime": "2018-10-31T16:38:24Z"
 		},
@@ -433,6 +469,12 @@
 			"revisionTime": "2018-10-30T10:34:37Z"
 		},
 		{
+			"checksumSHA1": "ZJnzBZ0IPGpzmZ8W/20S1V9G+SU=",
+			"path": "github.com/openzipkin/zipkin-go/propagation/b3",
+			"revision": "153cbaf00479b4afbce079cb6eb3e9bb256dc572",
+			"revisionTime": "2018-10-30T10:34:37Z"
+		},
+		{
 			"checksumSHA1": "RNwwQr3DdsMJ+83XZwfUoSImZHw=",
 			"path": "github.com/openzipkin/zipkin-go/reporter",
 			"revision": "153cbaf00479b4afbce079cb6eb3e9bb256dc572",
@@ -540,6 +582,18 @@
 			"path": "github.com/sirupsen/logrus",
 			"revision": "778f2e774c725116edbc3d039dc0dfc1cc62aae8",
 			"revisionTime": "2018-03-29T22:59:52Z"
+		},
+		{
+			"checksumSHA1": "bGo3AveLqYTbdOuXHh+wRi3Ytgk=",
+			"path": "github.com/sony/gobreaker",
+			"revision": "b2a34562d02c4d5fd6645399c69e00141fb24e5a",
+			"revisionTime": "2018-09-05T10:13:24Z"
+		},
+		{
+			"checksumSHA1": "pmY/+oD/m4JZNSfK70dr2hCkLlk=",
+			"path": "github.com/streadway/handy/breaker",
+			"revision": "f450267a206e480d863d2a92846a40f6e2896b2a",
+			"revisionTime": "2016-04-02T20:03:21Z"
 		},
 		{
 			"checksumSHA1": "5YCFabYzA1Zv/nGy35VDX5WBP4E=",
@@ -816,6 +870,12 @@
 			"path": "golang.org/x/text/unicode/norm",
 			"revision": "6f44c5a2ea40ee3593d98cdcc905cc1fdaa660e2",
 			"revisionTime": "2018-10-29T18:00:05Z"
+		},
+		{
+			"checksumSHA1": "CCw5z0nFydNs8Gep87Bl5azBs1c=",
+			"path": "golang.org/x/time/rate",
+			"revision": "fbb02b2291d28baffd63558aa44b4b56f178d650",
+			"revisionTime": "2018-04-12T16:56:04Z"
 		},
 		{
 			"checksumSHA1": "64IecoHAxPbU3DkJk8cojEoXfbc=",

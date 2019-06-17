@@ -26,8 +26,14 @@ func New(c *conf.RPCServer, s *logic.Server) *grpc.Server {
 		MaxConnectionAge:      time.Duration(c.MaxLifeTime),
 	})
 	srv := grpc.NewServer(keepParams)
-	pb.RegisterLogicServer(srv, &server{s})
+
 	grpc_health_v1.RegisterHealthServer(srv, health.NewServer())
+
+	//初始化注入点
+	endpoints = NewEndpoints(s)
+
+	pb.RegisterLogicServer(srv, &server{s})
+
 	return srv
 }
 
@@ -65,11 +71,19 @@ func (s *server) Close(ctx context.Context, req *pb.CloseReq) (*pb.CloseReply, e
 
 // Connect connect a conn.
 func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (*pb.ConnectReply, error) {
-	mid, key, room, platform, accepts, err := s.srv.Connect(ctx, req.Server, req.ServerKey, req.Cookie, req.Token)
+
+	//call middleware func add Zipkin,ratelimit,circuitbreaker
+	resp, err := endpoints.ConnectEndpoint(ctx, req)
 	if err != nil {
-		return &pb.ConnectReply{}, err
+		return nil, err
 	}
-	return &pb.ConnectReply{Mid: mid, Key: key, RoomID: room, Accepts: accepts, Platform: platform}, nil
+	return resp.(*pb.ConnectReply), nil
+
+	// mid, key, room, platform, accepts, err := s.srv.Connect(ctx, req.Server, req.ServerKey, req.Cookie, req.Token)
+	// if err != nil {
+	// 	return &pb.ConnectReply{}, err
+	// }
+	// return &pb.ConnectReply{Mid: mid, Key: key, RoomID: room, Accepts: accepts, Platform: platform}, nil
 }
 
 // Disconnect disconnect a conn.

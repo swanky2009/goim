@@ -14,7 +14,7 @@ comet:
   routinechan: 10
   routinesize: 10
 discovery:
-  addr: 109.254.2.159:8500
+  addr: 109.254.2.139:8500
 metrics_server:
   addr: :8025
 zipkin:
@@ -29,4 +29,4 @@ kafka:
   topic: goim-topic
   group: goim-group
   brokers:
-    - 109.254.2.159:9092
+    - 109.254.2.139:9092

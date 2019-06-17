@@ -26,8 +26,8 @@ func New(c *conf.RPCServer, s *comet.Server) *grpc.Server {
 		MaxConnectionAge:      time.Duration(c.MaxLifeTime),
 	})
 	srv := grpc.NewServer(keepParams)
-	pb.RegisterCometServer(srv, &server{s})
 	grpc_health_v1.RegisterHealthServer(srv, health.NewServer())
+	pb.RegisterCometServer(srv, &server{s})
 	return srv
 }
 
