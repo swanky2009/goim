@@ -25,7 +25,7 @@ func InitComets(c *conf.Comet) *Comets {
 		roomServersMap:  make(map[string]map[string]struct{}),
 	}
 
-	state := g.ServiceInstancer.GetState()
+	state := g.ServiceInstancer.GetServiceState()
 
 	if state.Err != nil {
 		panic(state.Err)
@@ -53,7 +53,7 @@ func InitComets(c *conf.Comet) *Comets {
 
 func (this *Comets) SyncComets(c *conf.Comet) {
 	for {
-		state := g.ServiceInstancer.GetState()
+		state := g.ServiceInstancer.GetServiceState()
 
 		if state.Err != nil {
 			g.Logger.Warnf("get comet rpc services error(%v)", state.Err)
